@@ -145,22 +145,23 @@ td{padding:10px 14px;font-size:12px}
 .blm{padding:9px 22px;border:2px solid var(--bd);border-radius:var(--rsm);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;background:var(--surface);color:var(--t);transition:.15s}
 .blm:hover{border-color:var(--p);color:var(--p)}
 @keyframes fu{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-.tmpl-grid{display:flex;flex-direction:column;gap:16px}
-.tmpl-section{background:var(--surface);border-radius:var(--rad);padding:20px;box-shadow:var(--sh)}
-.tmpl-section-title{font-size:13px;font-weight:700;color:var(--t);margin-bottom:4px;display:flex;align-items:center;gap:8px}
-.tmpl-section-sub{font-size:11px;color:var(--t2);margin-bottom:14px}
-.tmpl-cards{display:flex;flex-direction:column;gap:10px}
-.tmpl-card{background:var(--s2);border-radius:var(--rsm);padding:14px 16px;border-left:3px solid var(--bd);cursor:pointer;transition:.15s;position:relative}
-.tmpl-card:hover{border-left-color:var(--p);background:var(--pl)}
-.tmpl-card.expanded{border-left-color:var(--p)}
-.tmpl-label{font-size:11px;font-weight:700;color:var(--p);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
-.tmpl-when{font-size:11px;color:var(--t2);margin-bottom:8px;font-style:italic}
-.tmpl-msg{font-size:12px;line-height:1.7;color:var(--t);background:var(--surface);padding:12px 14px;border-radius:8px;border:1px solid var(--bd);white-space:pre-wrap}
-.tmpl-copy{margin-top:8px;padding:5px 12px;background:var(--pl);color:var(--p);border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
-.tmpl-copy:hover{background:var(--p);color:#fff}
-.tmpl-note{font-size:10px;color:var(--t2);margin-top:6px;font-style:italic}
-@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-.fade{animation:fu .3s ease}
+.ec-overlay{position:fixed;inset:0;background:rgba(26,24,37,.45);display:flex;align-items:center;justify-content:center;z-index:999;animation:fadeBg .25s ease;padding:20px}
+.ec-modal{background:var(--surface);border-radius:18px;max-width:400px;width:100%;padding:30px 28px;box-shadow:0 20px 60px rgba(26,24,37,.25);position:relative;animation:popIn .3s cubic-bezier(.2,.9,.3,1.2);text-align:center}
+.ec-close{position:absolute;top:14px;right:16px;background:none;border:none;font-size:18px;color:var(--t2);cursor:pointer;line-height:1;padding:4px}
+.ec-close:hover{color:var(--t)}
+.ec-emoji{font-size:34px;margin-bottom:12px}
+.ec-title{font-size:19px;font-weight:700;margin-bottom:8px;line-height:1.3}
+.ec-sub{font-size:13px;color:var(--t2);line-height:1.6;margin-bottom:20px}
+.ec-input{width:100%;padding:12px 14px;border:2px solid var(--bd);border-radius:10px;font-family:inherit;font-size:14px;background:var(--surface);color:var(--t);outline:none;transition:.15s;margin-bottom:10px;text-align:center}
+.ec-input:focus{border-color:var(--p)}
+.ec-submit{width:100%;padding:12px;background:var(--p);color:#fff;border:none;border-radius:10px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:.15s}
+.ec-submit:hover{background:var(--pd)}
+.ec-submit:disabled{opacity:.5;cursor:not-allowed}
+.ec-skip{margin-top:12px;background:none;border:none;font-size:12px;color:var(--t2);cursor:pointer;font-family:inherit;text-decoration:underline}
+.ec-skip:hover{color:var(--t)}
+.ec-done{font-size:15px;color:#0D7A5F;font-weight:600;line-height:1.6}
+@keyframes fadeBg{from{opacity:0}to{opacity:1}}
+@keyframes popIn{from{opacity:0;transform:translateY(16px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(max-width:1100px){.two-col{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)}.cg{grid-template-columns:1fr}}
 @media(max-width:720px){.ob{flex-direction:column}.ob-l{padding:40px 28px}.ob-r{width:100%;padding:36px 24px}.ob-h1{font-size:30px}.stats{grid-template-columns:repeat(2,1fr)}.main{padding:20px}}
 </style>
@@ -682,254 +683,61 @@ function Onboarding({onStart}){
   );
 }
 
-/* ─ TEMPLATES TAB ─ */
-function TemplateCard({label,when,msg,note}){
-  const [open,setOpen]=React.useState(false);
-  const [copied,setCopied]=React.useState(false);
-  function copy(){navigator.clipboard.writeText(msg);setCopied(true);setTimeout(()=>setCopied(false),2000);}
-  return React.createElement('div',{className:`tmpl-card ${open?'expanded':''}`,onClick:()=>setOpen(o=>!o)},
-    React.createElement('div',{className:'tmpl-label'},label),
-    React.createElement('div',{className:'tmpl-when'},when),
-    open&&React.createElement('div',null,
-      React.createElement('div',{className:'tmpl-msg'},msg),
-      note&&React.createElement('div',{className:'tmpl-note'},'💡 ',note),
-      React.createElement('button',{className:'tmpl-copy',onClick:e=>{e.stopPropagation();copy();}},copied?'✓ Copied':'Copy message')
-    )
-  );
-}
+/* ─ EMAIL CAPTURE ─ */
+/* SETUP: paste your Kit form ID below (kit.com, free up to 10,000 subscribers).
+   In Kit: Grow > Landing Pages & Forms > your form > Embed > HTML.
+   The code shows action="https://app.kit.com/forms/1234567/subscriptions".
+   Copy ONLY the number (e.g. 1234567) and put it between the quotes. */
+var KIT_FORM_ID = "YOUR_FORM_ID";
+var FORM_ENDPOINT = "https://app.kit.com/forms/" + KIT_FORM_ID + "/subscriptions";
 
-function TemplatesTab({mode,intent}){
-  const n=intent.aboutMe||'[your one-line background]';
-  const role=intent.role||'[target role]';
-  const ind=intent.industry||intent.industries||'[target industry]';
-  const offer=intent.offering||'[your service]';
-  const city=intent.city||'[your city]';
-  const co=intent.companies||'[target company]';
+function EmailCapture({onClose}){
+  const [email,setEmail]=useState("");
+  const [sent,setSent]=useState(false);
+  const [busy,setBusy]=useState(false);
 
-  const sections={
-    job:[
-      {
-        title:"🎯 Recruiters",sub:"Use when reaching out to recruiters in your target space",
-        cards:[
-          {label:"Cold recruiter — never messaged",when:"You connected but never spoke. They recruit in your target industry.",
-            msg:`Hi [Name],
+  async function submit(){
+    if(!email||email.indexOf("@")===-1)return;
+    setBusy(true);
+    try{
+      await fetch(FORM_ENDPOINT,{
+        method:"POST",
+        headers:{"Content-Type":"application/json","Accept":"application/json"},
+        body:JSON.stringify({email_address:email})
+      });
+    }catch(e){}
+    setBusy(false);
+    setSent(true);
+    // Instant download
+    try{
+      var a=document.createElement("a");
+      a.href="/templates.pdf";
+      a.download="warmlist-outreach-templates.pdf";
+      document.body.appendChild(a);a.click();document.body.removeChild(a);
+    }catch(e){}
+    setTimeout(onClose,3000);
+  }
 
-I noticed you recruit in ${ind} — I've been building my career in this space and am now actively exploring ${role} opportunities.
-
-Would love to be on your radar. Happy to share my background if helpful.`,
-            note:"Keep it short. Recruiters get hundreds of these — specificity wins."},
-          {label:"Warm recruiter — you messaged before",when:"You've spoken before, even briefly.",
-            msg:`Hi [Name],
-
-Hope you're well — we connected a while back and I wanted to reach out again. I've since [one thing you've done, e.g. led a regional launch / completed a big project] and am now actively exploring ${role} roles in ${ind}.
-
-Would love to reconnect if you have anything relevant on your radar.`,
-            note:"Reference what's changed since you last spoke. That's the re-engagement hook."},
-          {label:"Recruiter messaged you first",when:"They reached out — you haven't replied yet.",
-            msg:`Hi [Name],
-
-Apologies for the delayed reply — I've been heads down but your message caught my attention. I'm currently exploring ${role} opportunities in ${ind} and would love to learn more about what you're working on.
-
-Do you have 15 minutes this week?`,
-            note:"Always reference their outreach. It shows you actually read it."},
-        ]
-      },
-      {
-        title:"🏢 Target Company Contacts",sub:"Use when someone at your dream company is already in your network",
-        cards:[
-          {label:"Someone you've never messaged",when:"They work at your target company. Cold connection.",
-            msg:`Hi [Name],
-
-I've been following ${co}'s work closely — the [something specific about the company, e.g. recent expansion / product launch] really stood out to me.
-
-I'm exploring a move into the team and would love 15 minutes to hear about your experience there. No ask beyond that — just a genuine conversation.`,
-            note:"Name something specific about the company. Generic 'I admire your work' gets ignored."},
-          {label:"Hiring manager — warm connection",when:"They're senior enough to hire. You've spoken before.",
-            msg:`Hi [Name],
-
-Great to stay in touch — I've been thinking about a move to ${co} and you immediately came to mind.
-
-I've spent [X years] in [relevant background] and think there could be a real fit. Would love to explore if there's an opening or even just get your read on the team.`,
-            note:"Ask for their read on the team, not just 'are you hiring'. It's a softer and smarter opener."},
-        ]
-      },
-      {
-        title:"🤝 Warm Re-engagements",sub:"Reconnecting with people you've lost touch with",
-        cards:[
-          {label:"You sent the last message (no reply)",when:"You reached out before. They didn't respond. It's been a while.",
-            msg:`Hi [Name],
-
-I reached out a while back but wanted to try again — I know inboxes get chaotic.
-
-I'm currently exploring ${role} opportunities in ${ind} and thought of you. No pressure at all — even a 10-minute call would be incredibly helpful.`,
-            note:"Don't mention they didn't reply. Just re-open the door naturally."},
-          {label:"They sent the last message (you didn't reply)",when:"They reached out. You forgot to follow up.",
-            msg:`Hi [Name],
-
-I owe you a reply — I saw your message and then completely dropped the ball. Apologies.
-
-I'm now actively exploring ${role} roles and would genuinely love to reconnect. Would you be open to a quick call?`,
-            note:"Own it. People respect honesty far more than pretending it didn't happen."},
-          {label:"Cold connection — 2+ years, strong reason",when:"You haven't spoken but they're at the right company or in the right role.",
-            msg:`Hi [Name],
-
-We connected a while back and I don't think we've ever actually spoken — I'd love to change that.
-
-I'm [${n}] and currently exploring ${role} opportunities. Your background in ${ind} is exactly the space I'm moving into. Would love a 15-minute coffee chat if you're open to it.`,
-            note:"Lead with who you are. Don't assume they remember you."},
-        ]
-      },
-    ],
-    pivot:[
-      {
-        title:"🌿 Industry Insiders",sub:"People already in the world you're moving into",
-        cards:[
-          {label:"Senior person — never messaged",when:"They're Director+ in your target industry. No prior contact.",
-            msg:`Hi [Name],
-
-I'm in the middle of a deliberate transition into ${ind} — I've been [${n}] and I'm now building towards [target role].
-
-Your path into this space is one I've been following and I'd love 20 minutes to hear how you got there. No hidden agenda — just someone who wants to do this properly.`,
-            note:"Say 'deliberate transition' not 'career pivot'. It sounds more intentional."},
-          {label:"Peer — you have something in common",when:"Similar level, same target industry. Easier conversation.",
-            msg:`Hi [Name],
-
-I think we have a bit in common — I'm transitioning into ${ind} from [your current background] and noticed you've made a similar move.
-
-I'd love to hear what the shift was actually like. Would you be up for a quick chat?`,
-            note:"Peer-to-peer conversations are the most honest. They'll tell you what hiring managers won't."},
-          {label:"Someone you've spoken to before",when:"Prior contact. Now following up with your pivot news.",
-            msg:`Hi [Name],
-
-Hope you're well — we spoke a while back and I wanted to share a quick update. I'm now making a deliberate move into ${ind} after [brief background].
-
-I'd love to get your perspective if you have 20 minutes. You're one of the people whose read on this space I actually trust.`,
-            note:"Saying 'I trust your read' is more compelling than a generic coffee chat ask."},
-        ]
-      },
-    ],
-    clients:[
-      {
-        title:"💼 Decision Makers",sub:"Founders, C-Suite and Directors in your target industries",
-        cards:[
-          {label:"Founder / CEO — never messaged",when:"You're connected but haven't spoken. Strong target.",
-            msg:`Hi [Name],
-
-I've been following ${co||'your brand'} and genuinely think what you're building in ${ind} is interesting.
-
-I work with ${ind} brands on ${offer} — and I think there's something specific I could bring to the table for you. Would you be open to a 20-minute call?`,
-            note:"Lead with their company, not your services. Founders hear pitches all day — curiosity about them cuts through."},
-          {label:"Warm lead — you've spoken before",when:"Some prior contact. Strong enough relationship to pitch.",
-            msg:`Hi [Name],
-
-Great to stay in touch — I've been meaning to reach out.
-
-I've been doing a lot of work with ${ind} brands on ${offer} recently and keep thinking about ${co||'your team'}. Think there could be something worth a conversation. Would you be open to a quick call this week?`,
-            note:"'Keep thinking about your team' implies you've already been thinking about a fit. Warm and specific."},
-          {label:"Re-engage a cold lead",when:"You connected a long time ago. No prior convo. Worth trying.",
-            msg:`Hi [Name],
-
-We connected a while back and I don't think we ever spoke properly — wanted to change that.
-
-I'm [${n}] and I work with brands in ${ind} on ${offer}. I think what you're building at ${co||'your company'} is genuinely interesting — would love to explore if there's a fit.`,
-            note:"Keep it short. A cold message that's too long gets deleted. The goal is one reply, not a full pitch."},
-        ]
-      },
-      {
-        title:"⏰ Re-engagement",sub:"Warm leads going cold — touch back before they forget you",
-        cards:[
-          {label:"Value-add touchpoint",when:"You haven't spoken in 3–6 months. Re-open without pitching.",
-            msg:`Hi [Name],
-
-Thought of you when I saw [relevant article / industry news / something specific] — figured it might be useful given what you're building at ${co||'your company'}.
-
-Hope things are going well — would love to catch up soon.`,
-            note:"Share something genuinely relevant. Don't fake it. This is a relationship touchpoint, not a pitch."},
-          {label:"Follow-up after a previous conversation",when:"You spoke before. Never converted. Trying again.",
-            msg:`Hi [Name],
-
-Following up from our conversation a while back — I wanted to revisit whether there might be a fit.
-
-I've been working with a few ${ind} brands on ${offer} and the results have been strong. Would you be open to a 15-minute call to explore?`,
-            note:"Reference 'our conversation' to remind them this isn't cold. Then lead with results, not process."},
-        ]
-      },
-    ],
-    city:[
-      {
-        title:"🏙 Local Connections",sub:"People in your city you've never actually met",
-        cards:[
-          {label:"Same industry — easy starter",when:"You're connected. Same field. Same city. Never met.",
-            msg:`Hi [Name],
-
-I've been based in ${city} for a while now and realised we've never actually met — which seems like a waste given we're in similar worlds.
-
-Would you be up for a coffee sometime?`,
-            note:"Short is right here. Coffee invites don't need a paragraph of justification."},
-          {label:"Different industry — stronger reason needed",when:"You're connected but in different fields. Need a specific hook.",
-            msg:`Hi [Name],
-
-We connected a while back but I don't think we've ever spoken properly. I'm [${n}] — based in ${city}.
-
-I'd love to hear more about what you're working on at [their company]. Would you be up for a coffee?`,
-            note:"Lead with curiosity about them. Cross-industry coffees work best when you're genuinely interested."},
-          {label:"Someone who reached out to you",when:"They messaged you first. You're slow to reply.",
-            msg:`Hi [Name],
-
-Apologies for the slow reply — your message came at a busy time. I'd love to connect properly.
-
-I'm in ${city} — would you be up for a coffee this week or next?`,
-            note:"Own the delay. Then move fast to a concrete ask."},
-        ]
-      },
-    ],
-    audit:[
-      {
-        title:"🌐 Strategic Additions",sub:"Templates for intentionally expanding your network",
-        cards:[
-          {label:"Reaching out to someone in a gap industry",when:"You have no connections in this sector. Starting from scratch.",
-            msg:`Hi [Name],
-
-I don't think we've connected before but I came across your profile and wanted to reach out.
-
-I'm [${n}] — I'm deliberately building my presence in ${ind} and your background is exactly the kind of perspective I'd love to learn from. Would you be open to a quick call?`,
-            note:"'Deliberately building my presence' signals intent and seriousness. It's not random."},
-          {label:"Upgrading a peer relationship to a mentor one",when:"You know them as a peer. They've since become more senior.",
-            msg:`Hi [Name],
-
-We connected a while back when we were both [similar level / same context] — a lot has changed since then.
-
-I've been following your path and would love to get your perspective on [specific topic]. Would you be open to 20 minutes?`,
-            note:"Reference the shared history. Show you've been paying attention to their growth."},
-        ]
-      },
-    ],
-  };
-
-  const modeSections=sections[mode]||sections.audit;
-
-  return React.createElement('div',{className:'fade'},
-    React.createElement('div',{className:'sh'},
-      React.createElement('div',null,
-        React.createElement('div',{className:'st'},'Message Templates'),
-        React.createElement('div',{style:{fontSize:12,color:'var(--t2)',marginTop:4}},'Click any template to expand · customise the [bracketed] parts before sending')
-      )
-    ),
-    intent.aboutMe&&React.createElement('div',{style:{background:'var(--primary-light)',borderRadius:'var(--rsm)',padding:'12px 16px',marginBottom:18,fontSize:12,color:'var(--p)',background:'var(--pl)'}},
-      '✓ Using your background: ',React.createElement('strong',null,intent.aboutMe)
-    ),
-    React.createElement('div',{className:'tmpl-grid'},
-      modeSections.map((section,si)=>
-        React.createElement('div',{key:si,className:'tmpl-section'},
-          React.createElement('div',{className:'tmpl-section-title'},section.title),
-          React.createElement('div',{className:'tmpl-section-sub'},section.sub),
-          React.createElement('div',{className:'tmpl-cards'},
-            section.cards.map((card,ci)=>
-              React.createElement(TemplateCard,{key:ci,...card})
-            )
+  return React.createElement("div",{className:"ec-overlay",onClick:onClose},
+    React.createElement("div",{className:"ec-modal",onClick:e=>e.stopPropagation()},
+      React.createElement("button",{className:"ec-close",onClick:onClose},"✕"),
+      sent
+        ? React.createElement("div",null,
+            React.createElement("div",{className:"ec-emoji"},"🎉"),
+            React.createElement("div",{className:"ec-done"},"Downloading now. Go get them.")
           )
-        )
-      )
+        : React.createElement("div",null,
+            React.createElement("div",{className:"ec-emoji"},"✍️"),
+            React.createElement("div",{className:"ec-title"},"Okay but what do you actually say?"),
+            React.createElement("div",{className:"ec-sub"},"Drop your email and I will send you the templates I use. Cold outreach, reconnecting after two years of silence, and the follow up when they leave you on read."),
+            React.createElement("input",{
+              className:"ec-input",type:"email",placeholder:"your@email.com",value:email,
+              onChange:e=>setEmail(e.target.value),
+              onKeyDown:e=>{if(e.key==="Enter")submit();}
+            }),
+            React.createElement("button",{className:"ec-submit",onClick:submit,disabled:busy},busy?"One sec...":"Send them over"),
+            React.createElement("button",{className:"ec-skip",onClick:onClose},"No thanks")
+          )
     )
   );
 }
@@ -944,6 +752,19 @@ function Dashboard({conns,mode,intent,hasMessages,onReset}){
   const [coQ,setCoQ]=useState('');
   const [emailQ,setEmailQ]=useState('');
   const [emailSen,setEmailSen]=useState('');
+  const [showCapture,setShowCapture]=useState(false);
+  const [dismissed,setDismissed]=useState(false);
+  const [tabSwitches,setTabSwitches]=useState(0);
+
+  // Show capture after real engagement: 3 tab switches, or 45s on page
+  React.useEffect(function(){
+    if(dismissed||showCapture)return;
+    if(tabSwitches>=3){setShowCapture(true);return;}
+    var t=setTimeout(function(){if(!dismissed)setShowCapture(true);},45000);
+    return function(){clearTimeout(t);};
+  },[tabSwitches,dismissed,showCapture]);
+
+  function switchTab(id){setTab(id);setTabSwitches(function(n){return n+1;});}
 
   const mi=MODES.find(m=>m.id===mode);
   const h=useMemo(()=>calcHealth(conns,hasMessages),[conns,hasMessages]);
@@ -982,7 +803,7 @@ function Dashboard({conns,mode,intent,hasMessages,onReset}){
 
   const SENIORITIES=['Founder','C-Suite','VP','Director','Senior','Manager','Recruiter','IC / Peer'];
   const FUNCTIONS=['Marketing','Sales','Finance','Tech & Engineering','People & HR','Creative & Design','Operations','Consulting','Recruitment & Talent','Founder','Investor / VC','Other'];
-  const baseTabs=[{id:'hitlist',label:"⚡ Hit List"},{id:'templates',label:'✍️ Templates'},{id:'email',label:'✉ Emails'},{id:'network',label:'👥 Network'},{id:'companies',label:'🏢 Companies'},{id:'charts',label:'📊 Charts'}];
+  const baseTabs=[{id:'hitlist',label:"⚡ Hit List"},{id:'email',label:'✉ Emails'},{id:'network',label:'👥 Network'},{id:'companies',label:'🏢 Companies'},{id:'charts',label:'📊 Charts'}];
   const extraTabs=mode==='job'?[{id:'recs',label:"🎯 Recruiters"}]:mode==='clients'?[{id:'warm',label:'🔥 Warm Leads'}]:mode==='pivot'?[{id:'ins',label:'🌿 Insiders'}]:[];
   const tabs=[...baseTabs,...extraTabs];
 
@@ -1002,8 +823,6 @@ function Dashboard({conns,mode,intent,hasMessages,onReset}){
         :React.createElement('div',{className:'tw'},React.createElement('div',{className:'th2'},React.createElement('h3',null,`${filteredEmails.length} connections with email`)),React.createElement('div',{className:'ts'},React.createElement('table',null,React.createElement('thead',null,React.createElement('tr',null,React.createElement('th',null,'Name'),React.createElement('th',null,'Email'),React.createElement('th',null,'Company'),React.createElement('th',null,'Role'),React.createElement('th',null,'Level'),React.createElement('th',null,'Last Contact'),React.createElement('th',null,''))),React.createElement('tbody',null,filteredEmails.map(c=>React.createElement('tr',{key:c.id},React.createElement('td',null,React.createElement('div',{className:'tn'},c.name)),React.createElement('td',null,React.createElement('a',{href:`mailto:${c.email}`,style:{color:'var(--p)',fontSize:12}},c.email)),React.createElement('td',null,React.createElement('div',{className:'tsb'},c.company)),React.createElement('td',null,React.createElement('div',{className:'tsb'},c.position)),React.createElement('td',null,React.createElement('span',{className:'b bs'},c.seniority)),React.createElement('td',null,c.lastMessageDate?React.createElement('span',{className:'b',style:{background:'#5C4EE5',color:'#fff',fontSize:10}},'💬 ',msgAgo(c.lastMessageDate)):React.createElement(WBadge,{w:c.connectionWarmth})),React.createElement('td',null,c.url?React.createElement('a',{href:c.url,target:'_blank',rel:'noopener',style:{color:'var(--p)',textDecoration:'none'}},'↗'):''))))))
         )
     );
-
-    if(tab==='templates')return React.createElement(TemplatesTab,{mode,intent});
 
     if(tab==='network')return React.createElement('div',{className:'fade'},
       React.createElement('div',{className:'sh'},React.createElement('div',{className:'st'},'Full Network'),React.createElement('button',{className:'bex',onClick:()=>exportCSV(filtered,'network.csv')},'↓ Export')),
@@ -1062,7 +881,7 @@ function Dashboard({conns,mode,intent,hasMessages,onReset}){
   return React.createElement('div',{className:'dash'},
     React.createElement('div',{className:'sb'},
       React.createElement('div',{className:'sb-logo'},'⚡'),
-      tabs.map(t=>React.createElement('div',{key:t.id,className:`si ${tab===t.id?'act':''}`,onClick:()=>setTab(t.id),title:t.label.replace(/^\S+ /,'')},t.label.split(' ')[0])),
+      tabs.map(t=>React.createElement('div',{key:t.id,className:`si ${tab===t.id?'act':''}`,onClick:()=>switchTab(t.id),title:t.label.replace(/^\S+ /,'')},t.label.split(' ')[0])),
       React.createElement('div',{className:'sb-bot'},React.createElement('div',{className:'mbadge',onClick:onReset,title:"Reset"},mi?.icon,' Reset'))
     ),
     React.createElement('div',{className:'main'},
@@ -1081,7 +900,7 @@ function Dashboard({conns,mode,intent,hasMessages,onReset}){
         React.createElement('div',{className:'sc'},React.createElement('div',{className:'sc-l'},'👑 Decision Makers'),React.createElement('div',{className:'sc-v'},stats.sr.toLocaleString()),React.createElement('div',{className:'sc-s'},`${Math.round(stats.sr/stats.total*100)}% of network`)),
         React.createElement('div',{className:'sc'},React.createElement('div',{className:'sc-l'},'🏆 Health Score'),React.createElement('div',{className:'sc-v',style:{color:h.score>=65?'var(--g)':h.score>=50?'var(--o)':'var(--r)'}},h.score),React.createElement('div',{className:'sc-s'},h.grade))
       ),
-      React.createElement('div',{className:'tabs'},tabs.map(t=>React.createElement('button',{key:t.id,className:`tab ${tab===t.id?'act':''}`,onClick:()=>setTab(t.id)},t.label))),
+      React.createElement('div',{className:'tabs'},tabs.map(t=>React.createElement('button',{key:t.id,className:`tab ${tab===t.id?'act':''}`,onClick:()=>switchTab(t.id)},t.label))),
       React.createElement('div',{className:'two-col'},
         React.createElement('div',null,renderContent()),
         React.createElement('div',null,
@@ -1096,6 +915,7 @@ function Dashboard({conns,mode,intent,hasMessages,onReset}){
         )
       )
     )
+  ,showCapture&&React.createElement(EmailCapture,{onClose:function(){setShowCapture(false);setDismissed(true);}})
   );
 }
 
