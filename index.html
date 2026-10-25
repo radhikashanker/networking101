@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Warmlist</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=DM+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&family=Cormorant+Garamond:ital,wght@1,400;1,500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script crossorigin src="https://unpkg.com/react@17.0.2/umd/react.production.min.js"></script>
+<script>window.React||document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/react/17.0.2/umd/react.production.min.js"><\/script>')</script>
+<script crossorigin src="https://unpkg.com/react-dom@17.0.2/umd/react-dom.production.min.js"></script>
+<script>window.ReactDOM||document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/17.0.2/umd/react-dom.production.min.js"><\/script>')</script>
+<style>
+:root{--bg:#EEE9E1;--surface:#FBF8F3;--s2:#E8E1D7;--p:#4A1745;--pl:#EFE4EC;--pd:#33102F;--acc:#C28A45;--g:#3F7A5A;--r:#B23A34;--o:#C27634;--t:#2A1B26;--t2:#75656E;--bd:#DDD3C7;--sh:0 1px 2px rgba(42,27,38,.05),0 6px 18px rgba(42,27,38,.05);--shm:0 2px 4px rgba(42,27,38,.06),0 12px 28px rgba(42,27,38,.1);--rad:6px;--rsm:4px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--t);min-height:100vh}
+::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-thumb{background:var(--bd);border-radius:3px}
+.ob{display:flex;min-height:100vh}
+.ob-l{flex:1;background:var(--p);padding:60px;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden}
+.ob-l::before{content:'';position:absolute;width:420px;height:420px;border-radius:50%;background:rgba(255,255,255,.04);top:-120px;right:-120px}
+.ob-l::after{content:'';position:absolute;width:280px;height:280px;border-radius:50%;background:rgba(245,200,66,.1);bottom:-60px;left:-60px}
+.ob-ey{font-size:11px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:20px}
+.ob-h1{font-size:44px;font-weight:700;color:#fff;line-height:1.1;margin-bottom:20px}
+.ob-h1 span{color:var(--acc)}
+.ob-sub{font-size:17px;color:rgba(255,255,255,.6);line-height:1.65;max-width:380px;margin-bottom:44px}
+.ob-stats{display:flex;gap:36px;position:relative;z-index:1}
+.ob-sv{font-size:30px;font-weight:700;color:#fff;font-family:'DM Mono',monospace}
+.ob-sl{font-size:12px;color:rgba(255,255,255,.45);margin-top:2px}
+.ob-r{width:540px;padding:60px 48px;overflow-y:auto;background:var(--bg);display:flex;flex-direction:column;justify-content:center}
+.slbl{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--p);margin-bottom:6px}
+.stitle{font-size:22px;font-weight:700;margin-bottom:22px}
+.uz{border:2px dashed var(--bd);border-radius:var(--rad);padding:32px;text-align:center;cursor:pointer;transition:.2s;background:var(--surface);margin-bottom:12px}
+.uz:hover,.uz.drag{border-color:var(--p);background:var(--pl)}
+.ui{width:44px;height:44px;background:var(--pl);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:20px}
+.uz h3{font-size:14px;font-weight:600;margin-bottom:4px}
+.uz p{font-size:12px;color:var(--t2)}
+.uok{background:#EEF3EC;border:2px solid var(--g);border-radius:var(--rad);padding:16px 18px;display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.uok h3{font-size:14px;font-weight:600;color:#0D7A5F}
+.uok p{font-size:12px;color:#0D7A5F;opacity:.75}
+.uok-warn{background:#F3E9D4;border:2px solid var(--acc);border-radius:var(--rsm);padding:12px 16px;margin-bottom:20px;font-size:12px;color:#74501C;line-height:1.5}
+.guide{background:var(--pl);border-radius:var(--rsm);padding:14px 18px;margin-bottom:20px;font-size:12px;color:var(--p);line-height:1.6}
+.mg{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.mc{background:var(--surface);border:2px solid var(--bd);border-radius:var(--rsm);padding:13px 16px;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:12px}
+.mc:hover{border-color:var(--p);background:var(--pl)}.mc.sel{border-color:var(--p);background:var(--pl)}
+.mi{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;background:var(--s2);flex-shrink:0}
+.mc.sel .mi{background:var(--p)}
+.mt{font-size:13px;font-weight:600}.md{font-size:11px;color:var(--t2);margin-top:1px}
+.form{display:flex;flex-direction:column;gap:12px;margin-bottom:20px}
+.fg label{display:block;font-size:11px;font-weight:600;color:var(--t2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.fg input,.fg select{width:100%;padding:9px 13px;border:2px solid var(--bd);border-radius:var(--rsm);font-family:'DM Sans',sans-serif;font-size:13px;background:var(--surface);color:var(--t);outline:none;transition:.15s}
+.fg input:focus,.fg select:focus{border-color:var(--p)}
+.btn-p{background:var(--p);color:#fff;border:none;border-radius:var(--rsm);padding:13px 24px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:.15s;width:100%}
+.btn-p:hover{background:var(--pd);transform:translateY(-1px)}.btn-p:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.dash{display:flex;height:100vh;overflow:hidden}
+.sb{width:68px;background:var(--surface);border-right:1px solid var(--bd);display:flex;flex-direction:column;align-items:center;padding:20px 0;gap:2px;flex-shrink:0}
+.sb-logo{width:38px;height:38px;background:var(--p);border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px;margin-bottom:20px}
+.si{width:42px;height:42px;border-radius:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;color:var(--t2);transition:.15s}
+.si:hover{background:var(--s2);color:var(--p)}.si.act{background:var(--pl);color:var(--p)}
+.sb-bot{margin-top:auto}
+.mbadge{width:42px;padding:5px 0;border-radius:7px;background:var(--pl);color:var(--p);font-size:8px;font-weight:700;text-align:center;letter-spacing:.3px;text-transform:uppercase;cursor:pointer}
+.main{flex:1;overflow-y:auto;padding:28px 32px;min-width:0}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px}
+.topbar h1{font-size:26px;font-weight:700}.topbar p{font-size:13px;color:var(--t2);margin-top:2px}
+.tbr{display:flex;align-items:center;gap:10px}
+.mpill{padding:5px 13px;border-radius:100px;font-size:11px;font-weight:600;background:var(--pl);color:var(--p)}
+.msg-pill{padding:5px 13px;border-radius:100px;font-size:11px;font-weight:600;background:#F3E9D4;color:#74501C}
+.btn-sm{padding:7px 14px;border:2px solid var(--bd);border-radius:var(--rsm);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:500;cursor:pointer;background:var(--surface);color:var(--t);transition:.15s}
+.btn-sm:hover{border-color:var(--p);color:var(--p)}
+.stats{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:28px}
+.sc{background:var(--surface);border-radius:var(--rad);padding:18px;box-shadow:var(--sh);transition:.15s}
+.sc:hover{transform:translateY(-2px);box-shadow:var(--shm)}.sc.hl{background:var(--p)}
+.sc-l{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--t2);margin-bottom:7px}
+.sc.hl .sc-l{color:rgba(255,255,255,.55)}
+.sc-v{font-size:26px;font-weight:700;font-family:'DM Mono',monospace}
+.sc.hl .sc-v{color:#fff}
+.sc-s{font-size:11px;color:var(--t2);margin-top:3px}.sc.hl .sc-s{color:rgba(255,255,255,.5)}
+.tabs{display:flex;gap:3px;margin-bottom:22px;padding:3px;background:var(--s2);border-radius:var(--rsm);width:fit-content}
+.tab{padding:7px 16px;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s;color:var(--t2);border:none;background:none;font-family:'DM Sans',sans-serif}
+.tab:hover{color:var(--t)}.tab.act{background:var(--surface);color:var(--p);font-weight:600;box-shadow:var(--sh)}
+.two-col{display:grid;grid-template-columns:1fr 290px;gap:22px}
+.inp{display:flex;flex-direction:column;gap:10px}
+.ic{background:var(--surface);border-radius:var(--rad);padding:16px;border-left:3px solid var(--p);box-shadow:var(--sh);animation:fu .3s ease}
+.ic.warn{border-left-color:var(--r)}.ic.pos{border-left-color:var(--g)}.ic.neu{border-left-color:var(--o)}.ic.gold{border-left-color:var(--acc)}
+.ic-ic{font-size:16px;margin-bottom:6px}.ic-h{font-size:12px;font-weight:600;line-height:1.4;margin-bottom:3px}.ic-b{font-size:11px;color:var(--t2);line-height:1.55}
+.ic-a{margin-top:8px;padding:5px 10px;background:var(--pl);color:var(--p);border-radius:5px;font-size:10px;font-weight:600;cursor:pointer;border:none;font-family:'DM Sans',sans-serif;width:100%;text-align:left}
+.ic-a:hover{background:var(--p);color:#fff}
+.health{background:var(--p);border-radius:var(--rad);padding:20px;color:#fff;box-shadow:var(--shm);margin-bottom:10px}
+.hl-l{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.45);margin-bottom:6px}
+.hl-s{font-size:44px;font-weight:700;font-family:'DM Mono',monospace;line-height:1}
+.hl-sub{font-size:12px;color:rgba(255,255,255,.55);margin-top:3px;margin-bottom:4px}
+.hl-grade{font-size:11px;font-weight:600;color:var(--acc);margin-bottom:14px}
+.hbars{display:flex;flex-direction:column;gap:10px}
+.hbr{display:flex;flex-direction:column;gap:3px}
+.hbl{font-size:11px;color:rgba(255,255,255,.65);display:flex;justify-content:space-between}
+.hbt{height:5px;background:rgba(255,255,255,.15);border-radius:3px}
+.hbf{height:5px;background:var(--acc);border-radius:3px;transition:width .6s ease}
+.health-note{font-size:10px;color:rgba(255,255,255,.4);margin-top:14px;line-height:1.5;font-style:italic}
+.hl-list{display:flex;flex-direction:column;gap:9px}
+.hc{background:var(--surface);border-radius:var(--rad);padding:16px 18px;box-shadow:var(--sh);display:grid;grid-template-columns:36px 1fr auto;gap:12px;align-items:start;transition:.15s;animation:fu .2s ease}
+.hc:hover{transform:translateY(-2px);box-shadow:var(--shm)}
+.hr{width:34px;height:34px;background:var(--pl);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--p);font-family:'DM Mono',monospace;flex-shrink:0}
+.hr.top{background:var(--p);color:#fff}
+.hn{font-size:14px;font-weight:600;margin-bottom:1px}.hm{font-size:12px;color:var(--t2);margin-bottom:7px}
+.hw{font-size:11px;background:var(--s2);padding:5px 9px;border-radius:5px;margin-bottom:5px;line-height:1.4}
+.ha{font-size:11px;color:var(--p);font-style:italic;line-height:1.5;border-left:2px solid var(--pl);padding-left:8px;margin-top:4px}
+.hbs{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}
+.b{padding:2px 9px;border-radius:100px;font-size:10px;font-weight:600;display:inline-flex;align-items:center;gap:3px}
+.bh{background:var(--pl);color:var(--p)}.bw{background:#E2ECE4;color:#2F6447}.bc{background:#F5E6D4;color:#8F521C}.bf{background:var(--s2);color:var(--t2)}.be{background:#E2ECE4;color:#2F6447}.bs{background:var(--s2);color:var(--t2)}.bi{background:var(--pl);color:var(--p)}
+.warmth-note{background:#F3E9D4;border:1px solid var(--acc);border-radius:var(--rsm);padding:10px 14px;font-size:11px;color:#74501C;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.tw{background:var(--surface);border-radius:var(--rad);overflow:hidden;box-shadow:var(--sh)}
+.th2{padding:14px 18px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between}
+.th2 h3{font-size:14px;font-weight:600}
+.ts{overflow:auto;max-height:480px}
+table{width:100%;border-collapse:collapse}
+thead th{padding:10px 14px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.7px;color:var(--t2);background:var(--s2);cursor:pointer;user-select:none;white-space:nowrap}
+thead th:hover{color:var(--p)}
+tbody tr{border-bottom:1px solid var(--bd);transition:.1s}tbody tr:hover{background:var(--s2)}tbody tr:last-child{border-bottom:none}
+td{padding:10px 14px;font-size:12px}
+.tn{font-weight:600;white-space:nowrap}.tsb{font-size:11px;color:var(--t2);white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis}
+.fb{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.fs{padding:8px 13px;border:2px solid var(--bd);border-radius:var(--rsm);font-family:'DM Sans',sans-serif;font-size:12px;background:var(--surface);color:var(--t);outline:none;flex:1;min-width:180px;transition:.15s}
+.fs:focus{border-color:var(--p)}
+.fsel{padding:7px 12px;border:2px solid var(--bd);border-radius:var(--rsm);font-family:'DM Sans',sans-serif;font-size:12px;background:var(--surface);color:var(--t);outline:none;cursor:pointer;transition:.15s}
+.fsel:focus{border-color:var(--p)}
+.cg{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px}
+.cc{background:var(--surface);border-radius:var(--rad);padding:20px;box-shadow:var(--sh)}
+.ct{font-size:13px;font-weight:600;margin-bottom:16px}
+.bviz{display:flex;flex-direction:column;gap:6px}
+.bvr{display:flex;align-items:center;gap:8px;font-size:11px}
+.bvl{width:130px;text-align:right;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0}
+.bvt{flex:1;height:18px;background:var(--s2);border-radius:4px;overflow:hidden}
+.bvf{height:100%;border-radius:4px;transition:width .5s ease;display:flex;align-items:center;padding-left:6px;font-size:10px;font-weight:600;color:#fff;white-space:nowrap;min-width:4px}
+.bvv{color:var(--t2);font-family:'DM Mono',monospace;flex-shrink:0;min-width:28px;text-align:right}
+.cog{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.cocard{background:var(--surface);border-radius:var(--rad);padding:16px;box-shadow:var(--sh);transition:.15s;cursor:pointer;border-left:3px solid transparent}
+.cocard:hover{border-left-color:var(--p);transform:translateY(-2px);box-shadow:var(--shm)}
+.con{font-size:13px;font-weight:600;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.coc{font-size:22px;font-weight:700;font-family:'DM Mono',monospace;color:var(--p)}
+.com{font-size:11px;color:var(--t2);margin-top:2px}
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.st{font-size:17px;font-weight:700}.sc2{font-size:12px;color:var(--t2);font-family:'DM Mono',monospace}
+.bex{padding:6px 13px;background:var(--pl);color:var(--p);border:none;border-radius:var(--rsm);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:.15s}
+.bex:hover{background:var(--p);color:#fff}
+.lm{text-align:center;padding:18px}
+.blm{padding:9px 22px;border:2px solid var(--bd);border-radius:var(--rsm);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;cursor:pointer;background:var(--surface);color:var(--t);transition:.15s}
+.blm:hover{border-color:var(--p);color:var(--p)}
+@keyframes fu{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:1100px){.two-col{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,1fr)}.cg{grid-template-columns:1fr}}
+@media(max-width:720px){.ob{flex-direction:column}.ob-l{padding:40px 28px}.ob-r{width:100%;padding:36px 24px}.ob-h1{font-size:30px}.stats{grid-template-columns:repeat(2,1fr)}.main{padding:20px}}
+
+/* ===== Welcome screen: oxblood, paper and an engraved seal ===== */
+:root{--w-ox:#3E1239;--w-ox2:#2A0B27;--w-paper:#EEE9E1;--w-ink:#2C3BA8;--w-gold:#E9B97C;--w-cream:#F6EBDD;--w-tx:#2A1B17;--w-tx2:#76655D;--w-line:rgba(42,27,23,.16);--f-disp:'Instrument Serif',Georgia,'Times New Roman',serif;--f-ital:'Cormorant Garamond',Georgia,serif;--f-mono:'DM Mono',ui-monospace,Menlo,monospace}
+.grain{position:relative;isolation:isolate}
+.grain::after{content:'';position:absolute;inset:0;pointer-events:none;z-index:0;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");opacity:.32;mix-blend-mode:multiply;width:auto;height:auto;border-radius:0;background-color:transparent}
+.paper{background:radial-gradient(ellipse 60% 50% at 18% 22%,rgba(255,255,255,.55),transparent 70%),radial-gradient(ellipse 50% 45% at 82% 78%,rgba(170,150,120,.16),transparent 70%),radial-gradient(ellipse 40% 35% at 70% 20%,rgba(190,175,150,.12),transparent 70%),var(--w-paper)}
+.wl-eye,.wl-meta{font-family:var(--f-mono);font-size:10px;letter-spacing:.28em;text-transform:uppercase}
+.wl-word{font-family:var(--f-disp);font-weight:400;text-transform:uppercase;letter-spacing:.01em;line-height:.9}
+.wl-ital{font-family:var(--f-ital);font-style:italic;font-weight:400;line-height:1}
+
+/* intro */
+#wl-intro{position:fixed;inset:0;z-index:9999;background:var(--w-ox);overflow:hidden;transition:opacity .8s ease;cursor:pointer}
+#wl-intro.out{opacity:0;pointer-events:none}
+#wl-intro .wl-sheet{position:absolute;inset:-8%;transition:transform 1.1s cubic-bezier(.7,0,.2,1)}
+#wl-intro.torn .wl-sheet{filter:drop-shadow(0 14px 22px rgba(25,5,22,.45))}
+#wl-intro .wl-whole{position:absolute;inset:0}
+#wl-intro.torn .wl-whole{display:none}
+#wl-intro .wl-sheet>div{position:absolute;inset:0}
+#wl-intro.torn .wl-sheet.top{transform:translate(-7%,-82%) rotate(-6deg)}
+#wl-intro.torn .wl-sheet.bot{transform:translate(8%,86%) rotate(5deg)}
+#wl-cv{position:absolute;inset:0;z-index:3;pointer-events:none}
+.wl-stack{position:absolute;inset:0;z-index:4;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding-inline:max(16px,env(safe-area-inset-left,0px));color:var(--w-cream);text-align:center;pointer-events:none}
+.wl-slot{width:min(360px,76vw);aspect-ratio:600/380}
+.wl-in-txt{display:flex;flex-direction:column;align-items:center;gap:10px}
+.wl-in-txt>*,.wl-load{opacity:0;transform:translateY(14px);transition:opacity .9s ease,transform .9s cubic-bezier(.2,.7,.2,1)}
+#wl-intro.txt .wl-in-txt>*,#wl-intro.txt .wl-load{opacity:1;transform:none}
+#wl-intro.txt .wl-in-txt>*:nth-child(2){transition-delay:.12s}
+#wl-intro.txt .wl-in-txt>*:nth-child(3){transition-delay:.24s}
+#wl-intro.txt .wl-in-txt>*:nth-child(4){transition-delay:.4s}
+#wl-intro.txt .wl-load{transition-delay:.55s}
+#wl-intro .wl-word{font-size:clamp(54px,9vw,92px)}
+#wl-intro .wl-ital{font-size:clamp(26px,3.6vw,38px);color:var(--w-cream)}
+#wl-intro .wl-eye,#wl-intro .wl-meta{color:rgba(246,235,221,.62)}
+.wl-load{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:18px}
+.wl-track{position:relative;width:170px;height:1px;background:rgba(246,235,221,.28)}
+.wl-track i{position:absolute;top:-2.5px;left:0;width:6px;height:6px;border-radius:50%;background:#FFC98A;box-shadow:0 0 6px 2px rgba(255,170,90,.9),0 0 18px 6px rgba(255,120,50,.45)}
+#wl-intro.txt .wl-track i{animation:wlDot 1.9s cubic-bezier(.45,0,.3,1) .6s both}
+@keyframes wlDot{from{left:0}to{left:calc(100% - 6px)}}
+.wl-load span{font-family:var(--f-mono);font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:rgba(246,235,221,.5)}
+
+/* welcome: left panel */
+.ob .ob-l{background:var(--w-ox);color:var(--w-cream);align-items:center;text-align:center;padding:56px 48px}
+.ob .ob-l::before{content:'';position:absolute;inset:18px;border:1px solid rgba(246,235,221,.16);border-radius:2px;width:auto;height:auto;background:none;top:18px;right:18px;pointer-events:none}
+.ob .ob-l>.wl-l-in{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:14px;max-width:440px}
+.ob .wl-emb{width:min(260px,62vw);aspect-ratio:600/380;display:block}
+.ob .ob-l .wl-eye,.ob .ob-l .wl-meta{color:rgba(246,235,221,.6)}
+.ob .ob-h1{font-size:clamp(56px,6.4vw,86px);color:var(--w-cream);margin:6px 0 0}
+.ob .ob-l .wl-ital{font-size:clamp(26px,2.8vw,36px);margin-top:-4px}
+.ob .ob-sub{font-size:15px;line-height:1.65;color:rgba(246,235,221,.74);max-width:360px;margin:10px 0 6px}
+.ob .ob-stats{gap:0;margin:10px 0 4px;border-top:1px solid rgba(246,235,221,.2);border-bottom:1px solid rgba(246,235,221,.2)}
+.ob .ob-stats>div{padding:14px 22px}
+.ob .ob-stats>div+div{border-left:1px solid rgba(246,235,221,.2)}
+.ob .ob-sv{font-family:var(--f-disp);font-weight:400;font-size:38px;color:var(--w-cream);line-height:1;font-variant-numeric:tabular-nums}
+.ob .ob-sl{font-family:var(--f-mono);font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:rgba(246,235,221,.55);margin-top:6px}
+
+/* welcome: right panel */
+.ob .ob-r{color:var(--w-tx);font-size:14px}
+.ob .ob-r>div{position:relative;z-index:1}
+.ob .slbl{font-family:var(--f-mono);font-weight:400;font-size:10px;letter-spacing:.26em;color:var(--w-ox);margin-bottom:10px}
+.ob .stitle{font-family:var(--f-disp);font-weight:400;font-size:36px;line-height:1.02;letter-spacing:-.005em;color:var(--w-tx);margin-bottom:20px;text-wrap:balance}
+.ob .guide{background:transparent;border-left:2px solid var(--w-ox);border-radius:0;color:var(--w-tx2);padding:2px 0 2px 14px;font-size:12.5px;line-height:1.65}
+.ob .guide strong{color:var(--w-tx);font-weight:600}
+.ob .uz{background:rgba(255,255,255,.38);border:1px dashed rgba(62,18,57,.5);border-radius:3px;padding:26px 24px}
+.ob .uz:hover,.ob .uz.drag{background:rgba(62,18,57,.06);border-color:var(--w-ox)}
+.ob .ui{width:40px;height:40px;background:transparent;border:1px solid var(--w-ox);border-radius:50%;font-family:var(--f-disp);font-size:18px;color:var(--w-ox)}
+.ob .uz h3{font-family:var(--f-disp);font-weight:400;font-size:23px;color:var(--w-tx);margin-bottom:6px}
+.ob .uz p{font-family:var(--f-mono);font-size:10px;letter-spacing:.08em;color:var(--w-tx2)}
+.ob .uok{background:rgba(255,255,255,.55);border:1px solid rgba(62,18,57,.55);border-radius:3px}
+.ob .uok h3{font-family:var(--f-disp);font-weight:400;font-size:21px;color:var(--w-tx)}
+.ob .uok p{font-family:var(--f-mono);font-size:10px;letter-spacing:.06em;color:var(--w-tx2);opacity:1}
+.ob .wl-tick{flex-shrink:0;width:30px;height:30px;border-radius:50%;background:var(--w-ox);color:var(--w-cream);display:flex;align-items:center;justify-content:center;font-size:14px}
+.ob .wl-chg{margin-left:auto;cursor:pointer;font-family:var(--f-mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--w-ox)}
+.ob .mg{gap:0;border-top:1px solid var(--w-line)}
+.ob .mc{background:transparent;border:0;border-bottom:1px solid var(--w-line);border-radius:0;padding:14px 8px;gap:16px}
+.ob .mc:hover{background:rgba(62,18,57,.05);border-color:var(--w-line)}
+.ob .mc.sel{background:rgba(62,18,57,.08);border-color:var(--w-line)}
+.ob .mi{width:36px;height:36px;background:transparent;border:1px solid rgba(62,18,57,.45);border-radius:50%;font-family:var(--f-disp);font-size:15px;color:var(--w-ox)}
+.ob .mc.sel .mi{background:var(--w-ox);border-color:var(--w-ox);color:var(--w-cream)}
+.ob .mt{font-family:var(--f-disp);font-weight:400;font-size:21px;color:var(--w-tx)}
+.ob .md{font-size:12.5px;color:var(--w-tx2);margin-top:2px}
+.ob .fg label{font-family:var(--f-mono);font-weight:400;font-size:9.5px;letter-spacing:.2em;color:var(--w-tx2);margin-bottom:7px}
+.ob .fg input,.ob .fg select{background:rgba(255,255,255,.6);border:1px solid var(--w-line);border-radius:3px;font-size:14px;padding:11px 13px;color:var(--w-tx)}
+.ob .fg input:focus,.ob .fg select:focus{border-color:var(--w-ox)}
+.ob .btn-p{background:var(--w-ox);color:var(--w-cream);border-radius:3px;font-family:var(--f-mono);font-weight:400;font-size:11px;letter-spacing:.2em;text-transform:uppercase;padding:17px 24px}
+.ob .btn-p:hover{background:var(--w-ox2)}
+.ob .btn-p:disabled{opacity:.38;background:var(--w-ox)}
+.ob .btn-p:focus-visible,.ob .mc:focus-visible,.ob .uz:focus-visible{outline:2px solid var(--w-ink);outline-offset:3px}
+@media(max-width:720px){.ob .ob-l .wl-meta{letter-spacing:.16em}.ob .ob-l{padding:48px 24px}.ob .ob-l::before{inset:10px}.ob .stitle{font-size:30px}.ob .ob-stats>div{padding:12px 14px}.ob .ob-sv{font-size:30px}}
+@media(prefers-reduced-motion:reduce){#wl-intro{display:none}}
+/* ===== Dashboard type and surfaces, matched to the welcome screen ===== */
+.dash{background:radial-gradient(ellipse 60% 50% at 15% 10%,rgba(255,255,255,.45),transparent 70%),var(--bg)}
+.sb{background:var(--w-ox);border-right:0}
+.sb-logo{background:transparent;border:1px solid rgba(246,235,221,.35);border-radius:50%;font-family:var(--f-disp);font-size:22px;color:var(--w-cream)}
+.si{color:rgba(246,235,221,.6)}.si:hover{background:rgba(246,235,221,.08);color:var(--w-cream)}.si.act{background:rgba(246,235,221,.14);color:var(--w-cream)}
+.mbadge{background:rgba(246,235,221,.12);color:var(--w-cream);font-family:var(--f-mono);font-weight:400;letter-spacing:.08em}
+.topbar h1{font-family:var(--f-disp);font-weight:400;font-size:38px;line-height:1.05;letter-spacing:-.005em}
+.mpill,.msg-pill{font-family:var(--f-mono);font-weight:400;font-size:10px;letter-spacing:.12em;text-transform:uppercase;border-radius:3px}
+.btn-sm,.blm,.bex{border-width:1px}
+.btn-sm{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase}
+.sc{border:1px solid var(--bd);box-shadow:none}
+.sc.hl{border-color:var(--p)}
+.sc-l,.hl-l,thead th,.slbl{font-family:var(--f-mono);font-weight:400;letter-spacing:.16em}
+.sc-l{font-size:9.5px}
+.sc-v{font-family:var(--f-disp);font-weight:400;font-size:38px;line-height:1;font-variant-numeric:tabular-nums}
+.tabs{background:transparent;padding:0;gap:22px;border-bottom:1px solid var(--bd);border-radius:0;width:100%}
+.tab{padding:10px 0;border-radius:0;font-family:var(--f-mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:400;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab.act{background:none;box-shadow:none;color:var(--p);font-weight:400;border-bottom-color:var(--p)}
+.health{background:var(--w-ox);box-shadow:none;border-radius:var(--rad)}
+.hl-s{font-family:var(--f-disp);font-weight:400;font-size:64px}
+.hl-grade{font-family:var(--f-ital);font-style:italic;font-size:18px;font-weight:500;color:var(--w-gold)}
+.hbf{background:var(--w-gold)}
+.ic{border:1px solid var(--bd);border-left:3px solid var(--p);box-shadow:none}
+.ic-h{font-family:var(--f-disp);font-weight:400;font-size:17px;line-height:1.2}
+.ic-a{font-family:var(--f-mono);font-weight:400;letter-spacing:.08em}
+.hc{border:1px solid var(--bd);box-shadow:none}
+.hc:hover{box-shadow:var(--shm)}
+.hr{background:transparent;border:1px solid rgba(74,23,69,.4);border-radius:50%;font-family:var(--f-disp);font-weight:400;font-size:16px}
+.hr.top{background:var(--p);border-color:var(--p)}
+.hn{font-family:var(--f-disp);font-weight:400;font-size:21px;line-height:1.15}
+.ha{font-family:var(--f-ital);font-size:15px;line-height:1.4}
+.b{border-radius:3px}
+.st{font-family:var(--f-disp);font-weight:400;font-size:28px}
+.sc2{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.1em}
+.tw,.cc,.cocard{border:1px solid var(--bd);box-shadow:none}
+.th2 h3,.ct{font-family:var(--f-disp);font-weight:400;font-size:21px}
+.con{font-family:var(--f-disp);font-weight:400;font-size:18px}
+.coc{font-family:var(--f-disp);font-weight:400;font-size:32px}
+.bvv{font-family:var(--f-mono)}
+.fs,.fsel{border-width:1px}
+.ic-ic{display:none}
+.health-note{color:var(--t2);font-family:var(--f-ital);font-size:15px;margin:2px 4px 12px}
+.b.bh{background:#F4E2D6;color:#8A3B1E}
+.two-col>*{min-width:0}
+
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+/* <![CDATA[ */
+const {useState,useMemo}=React;
+
+function cleanStr(s){return(s||'').trim().replace(/^\uFEFF/,'');}
+
+/* ─ INFERENCE ─ */
+function infer_sen(p=''){
+  const s=p.toLowerCase();
+  const sNoVP=s.replace(/vice[\s-]*presid\w*/g,' vp ');
+  if(/\bfounder\b|co-?founder/.test(s))return'Founder';
+  if(/\bceo\b|\bcoo\b|\bcto\b|\bcmo\b|\bcfo\b|\bchief\b|\bpresident\b/.test(sNoVP))return'C-Suite';
+  if(/recruiter|talent acq|talent partner|sourcer|talent scout/.test(s))return'Recruiter';
+  if(/\bhr\b|human resource|people ops|people partner/.test(s))return'Recruiter';
+  if(/\bsvp\b|\bevp\b|\bavp\b|\bvp\b|vice pres/.test(s))return'VP';
+  if(/\bdirector\b|\bhead of\b|\bhead,/.test(s))return'Director';
+  if(/\bsenior\b|\bsr\.?\b|\blead\b|\bprincipal\b|\bstaff\b/.test(s))return'Senior';
+  if(/\bmanager\b|\bmgr\b/.test(s))return'Manager';
+  return'IC / Peer';
+}
+function infer_fn(p=''){
+  const s=p.toLowerCase();
+  if(/recruit|talent|sourcer/.test(s))return'Recruitment & Talent';
+  if(/\bfounder\b|co-?founder|\bceo\b|\bowner\b/.test(s))return'Founder';
+  if(/investor|venture|\bvc\b/.test(s))return'Investor / VC';
+  if(/market|brand|growth|content|social|seo|digital|campaign|comms|\bpr\b/.test(s))return'Marketing';
+  if(/engineer|develop|software|data|\bai\b|\bml\b|product|backend|frontend|devops/.test(s))return'Tech & Engineering';
+  if(/sales|business dev|biz dev|account exec|revenue/.test(s))return'Sales';
+  if(/financ|account|audit|treasury/.test(s))return'Finance';
+  if(/design|creative|\bux\b|\bui\b|art direct|visual/.test(s))return'Creative & Design';
+  if(/\bhr\b|human res|people/.test(s))return'People & HR';
+  if(/operat|supply chain|logis|procure/.test(s))return'Operations';
+  if(/consult|advisor/.test(s))return'Consulting';
+  return'Other';
+}
+// Proposed replacement for infer_ind + city detection. Shared by the measurement script and the app patch.
+function norm(s){ return (s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase(); }
+
+var IND_RULES=[
+  ['Beauty & Personal Care', /beauty|cosmetic|skin ?care|makeup|fragrance|perfum|l.?oreal|sephora|byoma|estee lauder|glossier|\bnyx\b|clinique|nivea|olay|\bpuig\b|huda|faces\b|wojooh|kiko|charlotte tilbury|benefit cosmetics|\bmac cosmetics\b|kylie|fenty|rituals|bath & body|the body shop|lush\b|beiersdorf|shiseido|coty\b|\bdior\b|lancome|kenvue|haleon/],
+  ['Wellness & Fitness', /\bwellness\b|\byoga\b|meditation|\bspa\b|pilates|\bfitness\b|\bgym\b|\bsports?\b|\bnike\b|\badidas\b|lululemon|puma\b|under armour|barry'?s|f45|crossfit|\bwhoop\b|\boura\b|gymnation|fitness first|decathlon|calo\b|herbalife|on running|new balance|asics/],
+  ['Luxury & Lifestyle', /\bluxury\b|\bfashion\b|jewel|\bwatch(es)?\b|omega|longines|\brado\b|tissot|cartier|\bgucci\b|\blvmh\b|chalhoub|rivoli|swarovski|\bcoach\b|landmark group|alshaya|al tayer|ounass|apparel group|\bdamas\b|tiffany|richemont|kering|prada|chanel|hermes|burberry|louis vuitton|bulgari|rolex|level shoes|etoile|harvey nichols|bloomingdale|galeries lafayette|max fashion|centrepoint|splash|h&m|inditex|zara|mango\b|tryano|azadea|majid al futtaim fashion/],
+  ['F&B & Hospitality', /\brestaurants?\b|\bfood(s)?\b|\bbeverages?\b|\bcafe\b|coffee|\bhotels?\b|hospitality|zomato|deliveroo|talabat|keeta|\bswiggy\b|catering|americana|starbucks|nando|mcdonald|kfc|pepsico|coca.?cola|marriott|hilton|jumeirah|accor|hyatt|rotana|four seasons|kitopi|careem now|instashop|blue tokai|\bpaul\b bakery|bakery|kitchen\b/],
+  ['FMCG & Consumer Goods', /unilever|procter|p&g\b|nestle|reckitt|\bmars\b|mondelez|colgate|kimberly|henkel|danone|kellogg|ferrero|agthia|al ghurair foods|britannia|hindustan unilever|\bitc\b|dabur|marico|godrej|heineken|diageo|pernod|red bull|almarai|savola|fmcg|consumer goods|cpg\b/],
+  ['Health Tech', /health.?tech|medtech|pharma|medical|\bclinics?\b|hospital|biotech|digital health|healthcare|\bhealth\b|okadoc|aster\b|mediclinic|novartis|pfizer|astrazeneca|gsk\b|sanofi|abbott|roche|johnson & johnson/],
+  ['Retail & E-commerce', /\bretail\b|e-?commerce|\bamazon\b|\bnoon\b|namshi|shopify|marketplace|sharaf dg|carrefour|majid al futtaim|lulu\b|spinneys|flipkart|myntra|nykaa|ikea|home centre|virgin megastore|jumbo electronics|emax|\bebay\b|aliexpress|shein|temu|trendyol/],
+  ['Agency & Consulting', /mckinsey|\bbain\b|\bbcg\b|boston consulting|kearney|deloitte|\bpwc\b|\bkpmg\b|\bey\b|ernst|accenture|\bagency\b|advertising|ogilvy|publicis|\bwpp\b|dentsu|omnicom|havas|leo burnett|tbwa|mindshare|mediacom|\bgroupm\b|starcom|zenith|vml|\bimpact bbdo|bbdo|saatchi|mccann|\bfp7|consulting|consultancy|strategy&|oliver wyman|\bpr\b agency|weber shandwick|edelman|brunswick|teneo|hill ?\+? ?knowlton/],
+  ['Finance & Banking', /\bbank\b|banking|financ|\binvest|\bfunds?\b|\bcapital\b|asset management|wealth|insurance|fintech|payments?\b|american express|\bamex\b|\bvisa\b|mastercard|paypal|stripe|checkout\.com|tabby|tamara|emirates nbd|mashreq|\bfab\b|first abu dhabi|adcb|\bhsbc\b|citi(bank|group)?\b|jp ?morgan|goldman|morgan stanley|barclays|standard chartered|blackrock|mubadala|\badia\b|adq\b|sarwa|baraka|careem pay|ziina|\bwio\b|liv\.|edelweiss|kotak|hdfc|icici|axis bank|bajaj finserv|crypto|binance|bitoasis/],
+  ['Tech & SaaS', /\btech\b|technolog|software|\bsaas\b|\bplatform\b|\bcloud\b|\bai\b|artificial intelligence|startup|zapier|microsoft|google|\bmeta\b|facebook|instagram|\bapple\b|linkedin|tiktok|bytedance|snap(chat)?\b|careem|\buber\b|salesforce|adobe|oracle|\bsap\b|\bibm\b|cisco|intel\b|nvidia|openai|anthropic|hubspot|canva|notion|figma|atlassian|tata consultancy|\btcs\b|infosys|wipro|hcl\b|cognizant|capgemini|appsflyer|bayt|dubizzle|property finder|bayut|anghami|swvl|yango|bolt\b|^du$|etisalat|^e&|\bstc\b|g42|presight|\bcore42|cyber|stealth/],
+  ['Media & Content', /\bmedia\b|publish|\bnews\b|\btv\b|\bfilm\b|entertainment|streaming|podcast|spotify|netflix|\bosn\b|shahid|\bmbc\b|gulf news|khaleej times|the national|arabian business|condé|conde nast|vogue|harper|\bcnn\b|\bbbc\b|bloomberg|reuters|sony music|universal music|warner|disney|\bitp\b|motivate media|creator|influencer|content studio/],
+  ['Education', /educat|university|\bschool\b|training|learning|\bcourse\b|academy|\binsead\b|\blbs\b|business school|\bcollege\b|gems education|taaleem|coursera|udemy|byju|unacademy|classplus|upgrad|sp jain/],
+  ['Real Estate', /real.?estate|\bpropert(y|ies)\b|proptech|realty|emaar|damac|nakheel|meraas|aldar|sobha|ellington|binghatti|azizi|danube properties|omniyat|select group|betterhomes|allsopp|driven properties|knight frank|\bjll\b|cbre|savills|colliers|cushman/],
+  ['Travel & Aviation', /airline|airways|aviation|\bairport\b|emirates group|^emirates$|flydubai|etihad|qatar airways|air arabia|travel|tourism|\bdet\b|dubai tourism|visit dubai|booking\.com|expedia|\bdnata\b|musafir|wego|tripadvisor/],
+  ['Government & Semi-Gov', /government|ministry|\bauthority\b|municipality|\brta\b|\bdewa\b|dubai holding|dubai world trade|\bdwtc\b|dubai future|museum of the future|expo 20|\bdifc\b|\bdmcc\b|\badnoc\b|aramco|\bneom\b|\bpif\b|dp world|dubai chamber|\bdubai culture|department of|council\b|\bpolice\b|embassy|consulate/],
+];
+function infer_ind(c,p){
+  var comp=norm(c), t=comp+' '+norm(p);
+  // company name is the strongest signal, so test it on its own first
+  for(var i=0;i<IND_RULES.length;i++){ if(IND_RULES[i][1].test(comp)) return IND_RULES[i][0]; }
+  for(var j=0;j<IND_RULES.length;j++){ if(IND_RULES[j][1].test(t)) return IND_RULES[j][0]; }
+  return 'Other';
+}
+
+// City: LinkedIn's export has no location column, so infer from company + title.
+var UAE_SIGNAL=/\bdubai\b|\buae\b|abu dhabi|sharjah|\bemirates\b|\bgcc\b|\bmena\b|menap|middle east|\bme\b region|\bdifc\b|\bdmcc\b|chalhoub|alshaya|al tayer|landmark group|home centre|majid al futtaim|\bmaf\b|ounass|apparel group|sharaf dg|rivoli|\bdamas\b|careem|talabat|\bnoon\b|namshi|emaar|damac|nakheel|meraas|aldar|emirates nbd|mashreq|first abu dhabi|adcb|flydubai|etihad|\bdnata\b|etisalat|\badnoc\b|dubai holding|dp world|\bdewa\b|\brta\b|museum of the future|jumeirah|rotana|kitopi|instashop|tabby|property finder|dubizzle|bayut|anghami|sarwa|ziina|\bwio\b|g42|mubadala|\badq\b|kitopi|americana|agthia|al ghurair|lulu\b|spinneys|azadea|level shoes|tryano|\bgems\b|taaleem|calo\b|gymnation|keeta/;
+var UAE_CITY=/dubai|\buae\b|abu dhabi|sharjah|ajman|emirates|ras al/;
+function inCity(c,city){
+  var cty=norm(city).trim(); if(!cty) return false;
+  var t=norm(c.company)+' '+norm(c.position);
+  if(t.indexOf(cty)>-1) return true;
+  if(UAE_CITY.test(cty)) return UAE_SIGNAL.test(t);
+  return false;
+}
+function infer_connWarmth(d=''){
+  if(!d)return'Cold';
+  const mo={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+  const p=d.trim().split(' ');
+  let dt=p.length===3?new Date(+p[2],(mo[p[1]]??0),+p[0]):new Date(d);
+  if(isNaN(dt))return'Cold';
+  const m=(Date.now()-dt)/(1000*60*60*24*30);
+  if(m<=3)return'Hot';if(m<=12)return'Warm';if(m<=24)return'Cooling';return'Cold';
+}
+
+/* ─ MESSAGES: URL-based matching ─ */
+function parseMessages(txt){
+  const clean=txt.replace(/^\uFEFF/,'');
+  const r=Papa.parse(clean,{header:true,skipEmptyLines:true,transformHeader:h=>h.trim().toUpperCase()});
+  if(!r.data||r.data.length===0)return{urlMap:{},myUrl:''};
+  // Auto-detect user's own URL = most frequent sender
+  const senderCounts={};
+  r.data.forEach(row=>{
+    const su=(row['SENDER PROFILE URL']||'').trim().replace(/\/$/,'').toLowerCase();
+    if(su)senderCounts[su]=(senderCounts[su]||0)+1;
+  });
+  const myUrl=Object.entries(senderCounts).sort((a,b)=>b[1]-a[1])[0]?.[0]||'';
+  const urlMap={};
+  r.data.forEach(row=>{
+    const su=(row['SENDER PROFILE URL']||'').trim().replace(/\/$/,'').toLowerCase();
+    const ru=(row['RECIPIENT PROFILE URLS']||row['RECIPIENT PROFILE URL']||'').trim().replace(/\/$/,'').toLowerCase();
+    const dateStr=(row['DATE']||'').trim();
+    if(!dateStr)return;
+    const d=new Date(dateStr.replace(' UTC','Z').replace(' ','T'));
+    if(isNaN(d.getTime()))return;
+    const other=su===myUrl?ru:su;
+    if(!other||other===myUrl||other.length<10)return;
+    const key=other.replace(/\/$/,'');
+    if(!urlMap[key]||d.getTime()>urlMap[key].getTime())urlMap[key]=d;
+  });
+  console.log('Messages parsed. Contacts:',Object.keys(urlMap).length,'myUrl:',myUrl);
+  return{urlMap,myUrl};
+}
+function matchByUrl(connUrl,urlMap){
+  if(!connUrl||!urlMap||!Object.keys(urlMap).length)return null;
+  const key=connUrl.toLowerCase().replace(/\/$/,'');
+  return urlMap[key]||null;
+}
+function getMsgWarmth(lastMsgDate){
+  if(!lastMsgDate)return null;
+  const m=(Date.now()-lastMsgDate)/(1000*60*60*24*30);
+  if(m<=1)return'Active';if(m<=3)return'Hot';if(m<=12)return'Warm';if(m<=24)return'Cooling';return'Cold';
+}
+
+/* ─ PARSE CONNECTIONS ─ */
+function parseCSV(txt,urlMap={}){
+  const clean=txt.replace(/^\uFEFF/,'');
+  const lines=clean.split('\n');
+  const hi=lines.findIndex(l=>l.includes('First Name'));
+  if(hi===-1)return[];
+  const r=Papa.parse(lines.slice(hi).join('\n'),{header:true,skipEmptyLines:true,transformHeader:h=>h.trim()});
+  return r.data.map((row,i)=>{
+    const firstName=cleanStr(row['First Name']);
+    const lastName=cleanStr(row['Last Name']);
+    const name=`${firstName} ${lastName}`.trim();
+    const email=cleanStr(row['Email Address']||'');
+    const company=cleanStr(row['Company']);
+    const position=cleanStr(row['Position']);
+    const connectedOn=cleanStr(row['Connected On']);
+    const url=cleanStr(row['URL']);
+    const connectionWarmth=infer_connWarmth(connectedOn);
+    // Connection age in months
+    const cp=connectedOn.trim().split(' ');
+    const cmo={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+    const cdt=cp.length===3?new Date(+cp[2],(cmo[cp[1]]??0),+cp[0]):new Date(connectedOn);
+    const connMonthsAgo=isNaN(cdt.getTime())?999:(Date.now()-cdt.getTime())/(1000*60*60*24*30);
+    // Message data — URL-based match
+    const msgDate=matchByUrl(url,urlMap);
+    const lastMessageDate=msgDate?msgDate.getTime():null;
+    const messageWarmth=getMsgWarmth(lastMessageDate);
+    const effectiveWarmth=messageWarmth||connectionWarmth;
+    return{
+      id:i,firstName,name,email,company,position,connectedOn,url,
+      seniority:infer_sen(position),fn:infer_fn(position),
+      industry:infer_ind(company,position),
+      connectionWarmth,messageWarmth,warmth:effectiveWarmth,
+      lastMessageDate,connMonthsAgo,
+      hasEmail:!!(email&&email.length>3&&email.includes('@')),
+    };
+  }).filter(c=>c.name.trim().length>0);
+}
+
+/* ─ SCORING ─ */
+function msgScore(c){
+  if(!c.lastMessageDate)return 0;
+  const m=(Date.now()-c.lastMessageDate)/(1000*60*60*24*30);
+  if(m<=1)return 60;if(m<=3)return 45;if(m<=12)return 30;if(m<=24)return 15;return 5;
+}
+function connScore(c){
+  const m=c.connMonthsAgo||999;
+  if(m<=3)return 20;if(m<=12)return 12;if(m<=24)return 5;return 2;
+}
+function scoreC(c,mode,intent){
+  const base=c.lastMessageDate?msgScore(c):connScore(c);
+  let s=base;
+  if(mode==='job'){
+    const tgts=(intent.companies||'').toLowerCase().split(',').map(x=>x.trim()).filter(Boolean);
+    if(tgts.some(t=>c.company.toLowerCase().includes(t)))s+=60;
+    if(c.seniority==='Recruiter')s+=50;
+    if((intent.industry||'')&&c.industry.toLowerCase().includes((intent.industry||'').toLowerCase()))s+=30;
+    if(['Director','VP','C-Suite'].includes(c.seniority))s+=20;
+  }else if(mode==='pivot'){
+    const ti=(intent.industry||'').toLowerCase();
+    if(ti&&c.industry.toLowerCase().includes(ti))s+=60;
+    if(['Director','VP','C-Suite','Founder'].includes(c.seniority))s+=25;
+  }else if(mode==='clients'){
+    if(['Founder','C-Suite','VP','Director'].includes(c.seniority))s+=60;
+    const ti=(intent.industries||'').toLowerCase();
+    if(ti&&ti.split(',').some(x=>c.industry.toLowerCase().includes(x.trim())))s+=40;
+    if(c.hasEmail)s+=20;
+  }else if(mode==='city'){
+    if(inCity(c,intent.city))s+=50;
+  }else{
+    const ti=(intent.targetIndustries||'').toLowerCase().split(',').map(x=>x.trim()).filter(Boolean);
+    if(ti.some(x=>x&&c.industry.toLowerCase().includes(x)))s+=50;
+    if(['Director','VP','C-Suite','Founder'].includes(c.seniority))s+=30;
+  }
+  return s;
+}
+
+/* ─ WHY REASON ─ */
+function whyC(c,mode,intent){
+  if(mode==='job'){
+    const tgts=(intent.companies||'').toLowerCase().split(',').map(x=>x.trim()).filter(Boolean);
+    if(tgts.some(t=>t&&c.company.toLowerCase().includes(t)))return`Works at ${c.company}, one of your target companies`;
+    if(c.seniority==='Recruiter')return`Recruiter at ${c.company}, a direct line to open roles`;
+    if(['Director','VP','C-Suite'].includes(c.seniority))return`${c.seniority} at ${c.company}, a potential hiring manager`;
+    return`In your target industry: ${c.industry}`;
+  }
+  if(mode==='pivot'){
+    const ti=(intent.industry||'').toLowerCase();
+    if(ti&&c.industry.toLowerCase().includes(ti))return`Already works in ${c.industry}`;
+    return`${c.seniority}, senior enough to open doors for your pivot`;
+  }
+  if(mode==='clients'){
+    if(c.seniority==='Founder')return`Founder at ${c.company}, owns the budget`;
+    if(['C-Suite','VP'].includes(c.seniority))return`${c.seniority} at ${c.company}, controls budgets`;
+    return`Director at ${c.company}, a likely buyer or champion`;
+  }
+  if(mode==='city'){if(!inCity(c,intent.city))return`Worth reconnecting with`;const exact=norm(c.company+' '+c.position).indexOf(norm(intent.city).trim())>-1;return exact?`Likely in ${intent.city}, based on their company or title`:`Likely UAE-based, based on their company or title`;}
+  return`Adds strategic diversity to your network`;
+}
+
+/* ─ TIME DISPLAY HELPERS ─ */
+function msgAgo(ts){
+  if(!ts)return'';
+  const m=(Date.now()-ts)/(1000*60*60*24*30);
+  if(m<0.5)return'this week';if(m<=1)return'last month';
+  if(m<=3)return'~'+Math.round(m*4)+'wk ago';
+  if(m<=12)return Math.round(m)+'mo ago';
+  return Math.round(m/12)+'yr ago';
+}
+function connAgo(months){
+  if(!months||months===999)return'unknown';
+  if(months<1)return'this month';if(months<12)return Math.round(months)+'mo ago';
+  return Math.round(months/12)+'yr ago';
+}
+
+
+const TAB_ICONS={
+  hitlist:'M9 6h11M9 12h11M9 18h11M4.5 6h.01M4.5 12h.01M4.5 18h.01',
+  email:'M3.5 6.5h17v11h-17zM3.5 7l8.5 6 8.5-6',
+  network:'M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5M16 11a2.5 2.5 0 1 0 0-5M17.5 14c2 .4 3.5 2 3.5 5',
+  companies:'M5 21V4h9v17M14 9h5v12M3 21h18M8 7.5h.01M11 7.5h.01M8 11h.01M11 11h.01M8 14.5h.01M11 14.5h.01',
+  charts:'M4 20V11M10 20V5M16 20v-7M3 20h18',
+  recs:'M12 20a8 8 0 1 0 0-16 8 8 0 0 0 0 16zM12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM12 12h.01',
+  warm:'M12 3c.8 3 4.5 5 4.5 9.5a4.5 4.5 0 0 1-9 0c0-2 .9-3.4 2-4.4.1 1.8.9 2.9 2 3.1-.4-3 .1-5.6.5-8.2z',
+  ins:'M6 21V3.5h12V21M4 21h16M14.5 12.5h.01'
+};
+function TabIcon({id}){
+  return React.createElement('svg',{width:19,height:19,viewBox:'0 0 24 24',fill:'none',stroke:'currentColor',strokeWidth:1.5,strokeLinecap:'round',strokeLinejoin:'round','aria-hidden':'true'},React.createElement('path',{d:TAB_ICONS[id]||TAB_ICONS.hitlist}));
+}
+/* ─ BADGES ─ */
+function WBadge({w}){
+  const cfg={Active:{style:{background:'var(--p)',color:'#fff'},ic:''},Hot:{cls:'bh',ic:''},Warm:{cls:'bw',ic:''},Cooling:{cls:'bc',ic:''},Cold:{cls:'bf',ic:''}};
+  const c=cfg[w]||cfg.Cold;
+  return React.createElement('span',{className:`b ${c.cls||''}`,style:c.style||{}},w);
+}
+function BarViz({data,color}){
+  const mx=Math.max(...data.map(d=>d.v),1);
+  return React.createElement('div',{className:'bviz'},data.slice(0,8).map(d=>
+    React.createElement('div',{key:d.k,className:'bvr'},
+      React.createElement('div',{className:'bvl',title:d.k},d.k),
+      React.createElement('div',{className:'bvt'},React.createElement('div',{className:'bvf',style:{width:`${Math.max((d.v/mx)*100,2)}%`,background:color||'var(--p)'}},d.v>5?d.v:'')),
+      React.createElement('span',{className:'bvv'},d.v)
+    )
+  ));
+}
+function countBy(arr,key){const m={};arr.forEach(x=>{const v=x[key]||'Unknown';m[v]=(m[v]||0)+1;});return Object.entries(m).sort((a,b)=>b[1]-a[1]).map(([k,v])=>({k,v}));}
+
+/* ─ HIT CARD ─ */
+function isLikelyHiring(c){
+  if(c.seniority!=='Recruiter')return false;
+  const p=c.position.toLowerCase();
+  if(/hiring|talent acquisition|ta|actively|sourcing/.test(p))return true;
+  return c.connMonthsAgo<=6;
+}
+function HitCard({c,rank,mode,intent}){
+  const w=whyC(c,mode,intent);
+  const hiring=isLikelyHiring(c);
+  return React.createElement('div',{className:'hc'},
+    React.createElement('div',{className:`hr ${rank<=3?'top':''}`},`#${rank}`),
+    React.createElement('div',null,
+      React.createElement('div',{className:'hn'},c.name),
+      React.createElement('div',{className:'hm'},`${c.position}${c.company?' · '+c.company:''}`),
+      React.createElement('div',{className:'hw'},w),
+      React.createElement('div',{className:'hbs'},
+        c.lastMessageDate
+          ?React.createElement('span',{className:'b',style:{background:'var(--p)',color:'#fff'}},'Messaged ',msgAgo(c.lastMessageDate))
+          :React.createElement(WBadge,{w:c.connectionWarmth}),
+        c.lastMessageDate&&React.createElement('span',{className:'b bf'},'Connected ',connAgo(c.connMonthsAgo)),
+        React.createElement('span',{className:'b bs'},c.seniority),
+        hiring&&React.createElement('span',{className:'b',style:{background:'#E2ECE4',color:'#2F6447'}},'Likely Hiring'),
+        c.hasEmail&&React.createElement('span',{className:'b be'},'Email'),
+        React.createElement('span',{className:'b bi',style:{fontSize:9}},c.industry)
+      )
+    ),
+    c.url&&React.createElement('a',{href:c.url,target:'_blank',rel:'noopener',style:{color:'var(--p)',fontSize:16,textDecoration:'none',paddingTop:2}},'↗')
+  );
+}
+
+/* ─ HEALTH SCORE ─ */
+function calcHealth(conns,hasMessages){
+  const n=conns.length;if(!n)return{score:0,grade:'—',comps:[],tip:''};
+  const inds=new Set(conns.map(c=>c.industry)).size;
+  const sp=conns.filter(c=>['Founder','C-Suite','VP','Director'].includes(c.seniority)).length/n;
+  const rp=conns.filter(c=>['Hot','Warm','Active'].includes(c.warmth)).length/n;
+  const geo=new Set(conns.map(c=>{const t=c.company.toLowerCase();if(t.includes('dubai')||t.includes('uae'))return'UAE';if(t.includes('saudi')||t.includes('ksa'))return'KSA';if(t.includes('london')||t.includes(' uk'))return'UK';if(t.includes('india')||t.includes('mumbai')||t.includes('delhi'))return'India';if(t.includes('usa')||t.includes('york')||t.includes('francisco'))return'US';return null;})).size-1;
+  const indScore=Math.min((inds/10)*20,20);
+  const senScore=Math.min((sp/.30)*25,25);
+  const recScore=Math.min((rp/.50)*20,20);
+  const geoScore=Math.min((Math.max(geo,0)/5)*15,15);
+  const emailPct=conns.filter(c=>c.hasEmail).length/n;
+  const msgPct=hasMessages?conns.filter(c=>c.lastMessageDate).length/n:0;
+  const actScore=Math.min((emailPct/.10)*8,8)+Math.min((msgPct/.15)*12,12);
+  const total=Math.round(indScore+senScore+recScore+geoScore+actScore);
+  let grade,tip;
+  if(total>=80){grade='Exceptional';tip='Top 5% of networks. Focus on activation, not growth.';}
+  else if(total>=65){grade='Strong';tip='Solid foundation. Focus on warming cold connections.';}
+  else if(total>=50){grade='Developing';tip='Good start. Diversify industries and seniority levels.';}
+  else if(total>=35){grade='Early Stage';tip='Needs work. Prioritise senior contacts in target industries.';}
+  else{grade='Just Starting';tip='Focus on strategic additions, not volume.';}
+  return{score:total,grade,comps:[{l:'Industry Spread',v:Math.round(indScore),m:20},{l:'Seniority Mix',v:Math.round(senScore),m:25},{l:'Network Recency',v:Math.round(recScore),m:20},{l:'Geographic Reach',v:Math.round(geoScore),m:15},{l:'Activation',v:Math.round(actScore),m:20}],tip};
+}
+
+/* ─ INSIGHTS ─ */
+function genInsights(conns,mode,intent,hasMessages){
+  const total=conns.length;
+  const hot=conns.filter(c=>['Hot','Active'].includes(c.warmth)).length;
+  const warm=conns.filter(c=>c.warmth==='Warm').length;
+  const cold=conns.filter(c=>c.warmth==='Cold').length;
+  const wEmail=conns.filter(c=>c.hasEmail).length;
+  const recs=conns.filter(c=>c.seniority==='Recruiter');
+  const senior=conns.filter(c=>['Founder','C-Suite','VP','Director'].includes(c.seniority));
+  const msort=(a,b)=>{const w={Active:0,Hot:1,Warm:2,Cooling:3,Cold:4};return w[a.warmth]-w[b.warmth];};
+  const out=[];
+  if(!hasMessages)out.push({t:'gold',i:'',h:'Upload Messages.csv to unlock real engagement data.',b:'Right now warmth is based on connection date. Upload your Messages.csv to see who you\'ve actually spoken to. The hit list changes significantly.',a:null});
+  if(mode==='job'){
+    const tgts=(intent.companies||'').toLowerCase().split(',').map(x=>x.trim()).filter(Boolean);
+    const tm=tgts.length?conns.filter(c=>tgts.some(t=>c.company.toLowerCase().includes(t))):[];
+    const isRecent=c=>['Active','Hot','Warm'].includes(c.warmth);
+    const wr=recs.filter(isRecent).sort(msort);
+    const tmSorted=[...tm].sort(msort);
+    const tmRec=tmSorted.find(c=>c.seniority==='Recruiter');
+    const tmBest=tmRec||tmSorted[0];
+    if(tm.length>0)out.push({t:'pos',i:'',h:`${tm.length} connection${tm.length>1?'s':''} at your target compan${tgts.length>1?'ies':'y'}.`,b:tmRec?`${tmRec.name} recruits at ${tmRec.company}. Message them before you apply, because a warm intro beats any cover letter.`:`Start with ${tmBest.name} at ${tmBest.company} before you apply. Someone inside beats any cover letter.`,a:'View hit list'});
+    else if(tgts.length)out.push({t:'warn',i:'',h:'No direct connections at your target companies yet.',b:`You will need cold outreach there, but your ${recs.length} recruiter and HR contacts can help you find a way in.`,a:null});
+    out.push({t:recs.length>5?'pos':'neu',i:'',h:`${recs.length} recruiter and HR contacts in your network. ${wr.length} recently active.`,b:wr.length?`${wr[0].name} at ${wr[0].company} is your highest-priority message this week.`:`None are recently active, so a short re-engagement message is the place to start.`,a:'View hit list'});
+    out.push({t:cold>total*.5?'warn':'neu',i:'',h:`${Math.round(cold/total*100)}% of your network was connected 2+ years ago.`,b:`${warm+hot} recently active contacts is your window. ${hasMessages?'Message data shows your truly active relationships.':'Upload Messages.csv to find who you actually still talk to.'}`,a:null});
+    out.push({t:wEmail>0?'gold':'warn',i:'',h:`${wEmail} connections have shared their email.`,b:wEmail>0?`Email tends to cut through faster than a LinkedIn message, so start with these.`:`No emails available. LinkedIn only shares them when a connection explicitly allows it.`,a:null});
+  }else if(mode==='pivot'){
+    const ti=(intent.industry||'').toLowerCase();
+    const ins=ti?conns.filter(c=>c.industry.toLowerCase().includes(ti)):[];
+    const si=ins.filter(c=>['Director','VP','C-Suite','Founder'].includes(c.seniority));
+    const wi=ins.filter(c=>['Hot','Warm','Active'].includes(c.warmth));
+    out.push({t:ins.length>10?'pos':'warn',i:'',h:`You already know ${ins.length} people in ${intent.industry||'your target industry'}.`,b:ins.length>0?`${si.length} are senior enough to open a door.`:`You're starting cold. Build credibility before pitching yourself.`,a:ins.length>0?'View insiders':null});
+    out.push({t:'gold',i:'',h:'Bridge contacts are your unfair advantage.',b:`People who've made a similar move skip the skepticism and get straight to helping.`,a:null});
+    out.push({t:wi.length>0?'pos':'neu',i:'',h:`${wi.length} of your ${ins.length} insiders are recently active.`,b:wi.length>0?`Start with ${wi[0]?.name}, because recent conversations are the easiest to pick back up.`:`Most insider connections are old. A personalised note works better than a generic re-engage.`,a:null});
+  }else if(mode==='clients'){
+    const ti=(intent.industries||'').toLowerCase().split(',').map(x=>x.trim()).filter(Boolean);
+    const pc=conns.filter(c=>['Founder','C-Suite','VP','Director'].includes(c.seniority)&&(ti.length===0||ti.some(x=>c.industry.toLowerCase().includes(x))));
+    const wc=pc.filter(c=>['Hot','Warm','Active'].includes(c.warmth));
+    const ec=pc.filter(c=>c.hasEmail);
+    out.push({t:'pos',i:'',h:`${pc.length} potential clients in your network right now.`,b:`${wc.length} are recently active. That's a pipeline most consultants would kill for.`,a:'View hit list'});
+    out.push({t:wc.length>0?'pos':'neu',i:'',h:`${wc.length} warm leads. Strike while the iron is hot.`,b:wc.length>0?`${wc[0].name}, ${wc[0].seniority} at ${wc[0].company}, is recently active. First message this week.`:`Connections are cooling. A value-add touchpoint rewarms before a pitch.`,a:null});
+    out.push({t:ec.length>0?'gold':'neu',i:'',h:`${ec.length} potential clients have shared their email.`,b:`Email tends to cut through faster than a LinkedIn message. Start here.`,a:null});
+    out.push({t:'warn',i:'',h:`Don't let warm leads go cold.`,b:`Anyone active 6–12 months ago is starting to forget you. A simple touchpoint this week keeps the door open.`,a:null});
+  }else if(mode==='city'){
+    const cc=intent.city?conns.filter(c=>inCity(c,intent.city)):[];
+    const wcc=cc.filter(c=>['Hot','Warm','Active'].includes(c.warmth));
+    out.push({t:cc.length>20?'pos':'neu',i:'',h:`~${cc.length} connections likely based in or around ${intent.city||'your city'}.`,b:`${wcc.length} are recently active. LinkedIn's export has no location field, so this is estimated from each person's company and title.`,a:null});
+    out.push({t:'gold',i:'',h:'One coffee chat a week for 8 weeks changes your city.',b:`8 real relationships beat 800 LinkedIn connections. People who meet you IRL remember, refer, and invite you into rooms.`,a:null});
+  }else{
+    const known=conns.filter(c=>c.industry!=='Other');
+    const gaps=INDS.filter(i=>i!=='Other'&&known.filter(c=>c.industry===i).length<5);
+    const top2=countBy(known,'industry').slice(0,2);
+    const tp=known.length?Math.round(top2.reduce((s,i)=>s+i.v,0)/known.length*100):0;
+    const icC=conns.filter(c=>c.seniority==='IC / Peer').length;
+    out.push({t:icC>total*.6?'warn':'pos',i:'',h:`${Math.round(senior.length/total*100)}% of your network is Director or above.`,b:icC>total*.6?`Skews junior. Strong for peer referrals, weak for doors and sponsorship.`:`Good seniority mix. Peer density and decision-maker access is rare.`,a:null});
+    if(gaps.length)out.push({t:'warn',i:'',h:`${gaps.length} industr${gaps.length>1?'ies':'y'} with fewer than 5 connections.`,b:`Thinnest: ${gaps.slice(0,3).join(', ')}. If an opportunity opens there, you have no warm way in.`,a:null});
+    else out.push({t:'pos',i:'',h:'You have at least 5 connections in every industry we track.',b:'Breadth is not your problem. Depth is, so pick the two industries that matter most and add senior people there.',a:null});
+    if(top2.length)out.push({t:tp>60?'warn':'neu',i:'',h:`${tp}% of your identifiable network sits in 2 industries.`,b:`${top2.map(i=>i.k).join(' and ')} dominate. Deliberate diversification protects your optionality.`,a:null});
+    out.push({t:cold>total*.5?'warn':'neu',i:'',h:`${Math.round(cold/total*100)}% of connections are cold.`,b:`Networks have a half-life. Add ${Math.round(total*.03)} new strategic connections this month.`,a:null});
+    out.push({t:'gold',i:'',h:`Your network is an asset. Treat it like one.`,b:`The strongest networks aren't the biggest. They're the most activated. 10 warm relationships open more doors than 5,000 passive ones.`,a:null});
+  }
+  return out.slice(0,6);
+}
+
+/* ─ MODES & INDUSTRIES ─ */
+const MODES=[{id:'job',icon:'',title:'Find a Job',desc:'Surface warm contacts at companies you want to work at'},{id:'pivot',icon:'',title:'Pivot My Career',desc:'Find people already living the life you want to move into'},{id:'clients',icon:'',title:'Win Clients',desc:'Identify decision-makers you could be working with right now'},{id:'city',icon:'',title:'Build in a New City',desc:"Activate connections in your city you've never actually met"},{id:'audit',icon:'',title:'Audit My Network',desc:'Find the gaps and blind spots in who you know'}];
+const INDS=['Beauty & Personal Care','Wellness & Fitness','Luxury & Lifestyle','F&B & Hospitality','Health Tech','Retail & E-commerce','Agency & Consulting','Finance & Banking','Tech & SaaS','Media & Content','Education','Real Estate','FMCG & Consumer Goods','Travel & Aviation','Government & Semi-Gov','Other'];
+
+/* ─ ONBOARDING ─ */
+
+/* ─ EMBLEM: an engraved seal drawn offscreen, then sampled into stipple points ─ */
+var WL_EMB=(function(){var cache=null;return function(){
+  if(cache)return cache;
+  var W=600,H=380,c=document.createElement('canvas');c.width=W;c.height=H;var x=c.getContext('2d');
+  x.strokeStyle='#000';x.fillStyle='#000';
+  x.lineWidth=12;x.beginPath();x.ellipse(300,190,282,172,0,0,Math.PI*2);x.stroke();
+  x.lineWidth=2.4;x.beginPath();x.ellipse(300,190,256,149,0,0,Math.PI*2);x.stroke();
+  function outer(){x.beginPath();x.moveTo(300,318);x.bezierCurveTo(232,318,204,270,222,222);x.bezierCurveTo(232,196,250,178,254,138);x.bezierCurveTo(274,160,280,182,276,204);x.bezierCurveTo(286,150,292,108,300,58);x.bezierCurveTo(314,108,326,148,322,196);x.bezierCurveTo(332,178,344,156,346,128);x.bezierCurveTo(376,172,394,226,380,268);x.bezierCurveTo(368,302,340,318,300,318);x.closePath();}
+  function inner(){x.beginPath();x.moveTo(300,306);x.bezierCurveTo(268,306,256,280,268,254);x.bezierCurveTo(280,230,292,210,298,176);x.bezierCurveTo(318,214,338,250,332,280);x.bezierCurveTo(327,298,315,306,300,306);x.closePath();}
+  var g=x.createLinearGradient(205,0,395,0);g.addColorStop(0,'rgba(0,0,0,.62)');g.addColorStop(.55,'rgba(0,0,0,.22)');g.addColorStop(1,'rgba(0,0,0,.06)');
+  outer();x.fillStyle=g;x.fill();x.lineWidth=4.5;x.stroke();
+  x.save();outer();x.clip();x.lineWidth=1.6;x.strokeStyle='rgba(0,0,0,.55)';
+  for(var i=0;i<10;i++){x.beginPath();x.moveTo(212+i*6,320);x.quadraticCurveTo(220+i*5,236,250+i*5,150+i*4);x.stroke();}
+  x.restore();
+  x.save();inner();x.clip();x.clearRect(0,0,W,H);x.restore();
+  inner();x.fillStyle='rgba(0,0,0,.1)';x.fill();x.lineWidth=2.4;x.strokeStyle='#000';x.stroke();
+  x.fillStyle='#000';
+  [[262,100,3.5],[342,92,3.5],[284,46,2.6],[322,40,3],[240,124,2.2],[366,118,2.2]].forEach(function(s){x.beginPath();x.arc(s[0],s[1],s[2],0,Math.PI*2);x.fill();});
+  x.lineWidth=3;x.beginPath();x.moveTo(232,334);x.lineTo(368,334);x.stroke();
+  x.lineWidth=1.4;x.beginPath();x.moveTo(256,343);x.lineTo(344,343);x.stroke();
+  function star(cx,cy,r){x.beginPath();x.moveTo(cx,cy-r);x.quadraticCurveTo(cx,cy,cx+r*.8,cy);x.quadraticCurveTo(cx,cy,cx,cy+r);x.quadraticCurveTo(cx,cy,cx-r*.8,cy);x.quadraticCurveTo(cx,cy,cx,cy-r);x.fill();}
+  star(118,190,17);star(482,190,17);star(160,118,7);star(440,262,7);star(160,262,6);star(440,118,6);
+  var d=x.getImageData(0,0,W,H).data,pts=[];
+  for(var yy=0;yy<H;yy+=2)for(var xx=0;xx<W;xx+=2){var a=d[(yy*W+xx)*4+3]/255;if(a>.02&&Math.random()<a*.6)pts.push([(xx+Math.random()*2)/W,(yy+Math.random()*2)/H,.5+Math.random()*.5]);}
+  cache={pts:pts,ar:H/W};return cache;
+};})();
+function wlHex(h){return[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];}
+function wlMix(a,b,k){var A=wlHex(a),B=wlHex(b);return'rgb('+A.map(function(v,i){return Math.round(v+(B[i]-v)*k);}).join(',')+')';}
+function wlDraw(cv,rect,color,shimmer){
+  var dpr=Math.min(window.devicePixelRatio||1,2),E=WL_EMB(),ctx=cv.getContext('2d');
+  cv.width=Math.round(rect.width*dpr);cv.height=Math.round(rect.height*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,rect.width,rect.height);ctx.fillStyle=color;
+  var s=Math.max(1,rect.width/300*1.15);
+  E.pts.forEach(function(q){ctx.globalAlpha=q[2]*(shimmer?(.75+Math.random()*.25):1);ctx.fillRect(q[0]*rect.width,q[1]*rect.height,s,s);});
+  ctx.globalAlpha=1;
+}
+(function wlIntro(){
+  try{if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;}catch(e){}
+  var C={ink:'#2C3BA8',gold:'#E9B97C',cream:'#F6EBDD'};
+  var el=document.createElement('div');el.id='wl-intro';
+  var edge=[],y=46,n=48;for(var i=0;i<=n;i++){y+=(Math.random()-.5)*3.2;var base=60-i/n*26;y=y*.7+base*.3;edge.push([i/n*100,y+(Math.random()-.5)*1.1]);}
+  var topPoly='0% 0%,100% 0%,'+edge.slice().reverse().map(function(p){return p[0].toFixed(2)+'% '+p[1].toFixed(2)+'%';}).join(',');
+  var botPoly=edge.map(function(p){return p[0].toFixed(2)+'% '+p[1].toFixed(2)+'%';}).join(',')+',100% 100%,0% 100%';
+  el.innerHTML='<div class="wl-sheet top"><div class="paper" style="clip-path:polygon('+topPoly+')"></div></div>'+
+    '<div class="wl-sheet bot"><div class="paper" style="clip-path:polygon('+botPoly+')"></div></div>'+
+    '<div class="wl-whole paper"></div><canvas id="wl-cv"></canvas>'+
+    '<div class="wl-stack"><div class="wl-slot"></div><div class="wl-in-txt"><div class="wl-eye">A LinkedIn network reader</div><div class="wl-word">Warmlist</div><div class="wl-ital">who to message next.</div><div class="wl-meta">Runs in your browser &middot; Nothing is uploaded</div></div>'+
+    '<div class="wl-load"><div class="wl-track"><i></i></div><span>Opening your list</span></div></div>';
+  el.classList.add('grain');
+  document.body.appendChild(el);
+  var cv=el.querySelector('#wl-cv'),ctx=cv.getContext('2d'),slot=el.querySelector('.wl-slot'),E=WL_EMB(),P=[],W=0,H=0,dpr=Math.min(window.devicePixelRatio||1,2),box=null,size=1;
+  function fit(){W=window.innerWidth;H=window.innerHeight;cv.width=W*dpr;cv.height=H*dpr;cv.style.width=W+'px';cv.style.height=H+'px';ctx.setTransform(dpr,0,0,dpr,0,0);var r=slot.getBoundingClientRect();box=r;size=Math.max(1,r.width/300*1.15);P.forEach(function(p,i){var q=E.pts[i];p.tx=r.left+q[0]*r.width;p.ty=r.top+q[1]*r.height;});}
+  E.pts.forEach(function(q){P.push({a:q[2],x:0,y:0,tx:0,ty:0,sx:0,sy:0,ex:0,ey:0,dl:0});});
+  fit();
+  P.forEach(function(p){var ang=Math.random()*Math.PI*2,R=80+Math.random()*Math.max(W,H)*.45;p.x=p.tx+Math.cos(ang)*R;p.y=p.ty+Math.sin(ang)*R;});
+  var tw=null,raf=0,done=false;
+  function tween(dur,setup,c0,c1,cdur){var t0=performance.now();P.forEach(setup);tw={t0:t0,dur:dur,c0:c0,c1:c1,cdur:cdur||dur};}
+  function ease(k){return k<.5?4*k*k*k:1-Math.pow(-2*k+2,3)/2;}
+  function frame(now){
+    if(done)return;
+    ctx.clearRect(0,0,W,H);
+    var col=C.ink;
+    if(tw){var el2=now-tw.t0;col=wlMix(tw.c0,tw.c1,Math.min(1,el2/tw.cdur));
+      P.forEach(function(p){var k=Math.min(1,Math.max(0,(el2-p.dl*tw.dur)/(tw.dur*(1-.3))));var e=ease(k);p.x=p.sx+(p.ex-p.sx)*e;p.y=p.sy+(p.ey-p.sy)*e;});}
+    ctx.fillStyle=col;
+    for(var i=0;i<P.length;i++){var p=P[i];ctx.globalAlpha=p.a;ctx.fillRect(p.x,p.y,size,size);}
+    ctx.globalAlpha=1;raf=requestAnimationFrame(frame);
+  }
+  raf=requestAnimationFrame(frame);
+  tween(1500,function(p){p.sx=p.x;p.sy=p.y;p.ex=p.tx;p.ey=p.ty;p.dl=Math.random()*.3;},C.ink,C.ink);
+  var T=[];
+  function at(ms,fn){T.push(setTimeout(fn,ms));}
+  at(1750,function(){el.classList.add('torn');tween(520,function(p){var ang=Math.random()*Math.PI*2,R=14+Math.random()*70;p.sx=p.x;p.sy=p.y;p.ex=p.x+Math.cos(ang)*R;p.ey=p.y+Math.sin(ang)*R*.7;p.dl=Math.random()*.25;},C.ink,C.gold,380);});
+  at(2300,function(){tween(1250,function(p){p.sx=p.x;p.sy=p.y;p.ex=p.tx;p.ey=p.ty;p.dl=Math.random()*.3;},C.gold,C.gold);});
+  at(2950,function(){el.classList.add('txt');});
+  at(3600,function(){tween(10,function(p){p.sx=p.x;p.sy=p.y;p.ex=p.tx;p.ey=p.ty;p.dl=0;},C.gold,C.cream,1300);});
+  at(5300,finish);
+  function finish(){if(done)return;T.forEach(clearTimeout);el.classList.add('out');setTimeout(function(){done=true;cancelAnimationFrame(raf);el.remove();},850);}
+  el.addEventListener('click',finish);
+  window.addEventListener('keydown',function k(){finish();window.removeEventListener('keydown',k);});
+  window.addEventListener('resize',function(){if(!done)fit();});
+})();
+
+function EmblemCanvas(){
+  const ref=React.useRef(null);
+  React.useEffect(function(){
+    var cv=ref.current;if(!cv)return;
+    function paint(){var r=cv.getBoundingClientRect();if(r.width)wlDraw(cv,r,'#F6EBDD',false);}
+    paint();var id=setInterval(function(){var r=cv.getBoundingClientRect();if(r.width)wlDraw(cv,r,'#F6EBDD',true);},140);
+    window.addEventListener('resize',paint);
+    return function(){clearInterval(id);window.removeEventListener('resize',paint);};
+  },[]);
+  return React.createElement('canvas',{ref:ref,className:'wl-emb','aria-hidden':'true'});
+}
+
+/* ─ ONBOARDING ─ */
+function Onboarding({onStart,initial}){
+  const [conns,setConns]=useState(initial?initial.conns:null);
+  const [rawConnText,setRawConnText]=useState(initial?initial.rawConnText:'');
+  const [urlMap,setUrlMap]=useState(initial?initial.urlMap:{});
+  const [mode,setMode]=useState(null);
+  const [intent,setIntent]=useState({});
+  const [step,setStep]=useState(initial?2:1);
+  const [drag,setDrag]=useState(false);
+  const [msgDrag,setMsgDrag]=useState(false);
+  const [hasMessages,setHasMessages]=useState(initial?initial.hasMessages:false);
+  const msgCount=conns?conns.filter(c=>c.lastMessageDate).length:0;
+
+  function readConnections(f){
+    const r=new FileReader();
+    r.onload=e=>{setRawConnText(e.target.result);const p=parseCSV(e.target.result,urlMap);setConns(p);};
+    r.readAsText(f,'UTF-8');
+  }
+  function readMessages(f){
+    const r=new FileReader();
+    r.onload=e=>{
+      const {urlMap:um}=parseMessages(e.target.result);
+      setUrlMap(um);setHasMessages(true);
+      if(rawConnText){const p=parseCSV(rawConnText,um);setConns(p);}
+    };
+    r.readAsText(f,'UTF-8');
+  }
+
+  const I=(k,ph,val,cb)=>React.createElement('div',{className:'fg'},React.createElement('label',null,k),React.createElement('input',{placeholder:ph,value:val||'',onChange:e=>cb(e.target.value)}));
+  const S=(k,val,cb,opts)=>React.createElement('div',{className:'fg'},React.createElement('label',null,k),React.createElement('select',{value:val||'',onChange:e=>cb(e.target.value)},React.createElement('option',{value:''},'Select'),opts.map(o=>React.createElement('option',{key:o,value:o},o))));
+
+  return React.createElement('div',{className:'ob'},
+    React.createElement('div',{className:'ob-l grain'},React.createElement('div',{className:'wl-l-in'},React.createElement('div',{className:'wl-eye'},'A LinkedIn network reader'),React.createElement(EmblemCanvas),
+            React.createElement('h1',{className:'ob-h1 wl-word'},'Warmlist'),React.createElement('div',{className:'wl-ital'},'who to message next.'),
+      React.createElement('p',{className:'ob-sub'},'Upload your LinkedIn export and get a ranked list of the people worth messaging for your job search, career pivot, client pipeline or new city.'),
+      conns&&React.createElement('div',{className:'ob-stats'},
+        React.createElement('div',null,React.createElement('div',{className:'ob-sv'},conns.length.toLocaleString()),React.createElement('div',{className:'ob-sl'},'Connections')),
+        React.createElement('div',null,React.createElement('div',{className:'ob-sv'},conns.filter(c=>['Hot','Warm','Active'].includes(c.warmth)).length),React.createElement('div',{className:'ob-sl'},'Active')),
+        React.createElement('div',null,React.createElement('div',{className:'ob-sv'},(hasMessages?msgCount:conns.filter(c=>c.hasEmail).length).toLocaleString()),React.createElement('div',{className:'ob-sl'},hasMessages?'Messaged':'With Email'))
+      ),
+      React.createElement('div',{className:'wl-meta'},'Runs in your browser \u00b7 Nothing is uploaded')
+    )),
+    React.createElement('div',{className:'ob-r paper grain'},
+      step===1&&React.createElement('div',null,
+        React.createElement('div',{className:'slbl'},'Step 1 of 3'),
+        React.createElement('h2',{className:'stitle'},'Upload your LinkedIn data'),
+        React.createElement('div',{className:'guide'},React.createElement('strong',null,'How to export: '),'LinkedIn, then Settings & Privacy, then Data privacy, then Get a copy of your data. Tick Connections and Messages, then request the archive. It arrives within 24 hours.'),
+        conns?React.createElement('div',{className:'uok',style:{marginBottom:12}},React.createElement('span',{className:'wl-tick'},'\u2713'),React.createElement('div',null,React.createElement('h3',null,`${conns.length.toLocaleString()} connections loaded`),React.createElement('p',null,`${conns.filter(c=>c.hasEmail).length} with email`)),React.createElement('span',{className:'wl-chg',onClick:()=>document.getElementById('fi').click()},'Change'))
+          :React.createElement('div',{className:`uz ${drag?'drag':''}`,style:{marginBottom:12},onDragOver:e=>{e.preventDefault();setDrag(true)},onDragLeave:()=>setDrag(false),onDrop:e=>{e.preventDefault();setDrag(false);if(e.dataTransfer.files[0])readConnections(e.dataTransfer.files[0])},onClick:()=>document.getElementById('fi').click()},React.createElement('div',{className:'ui'},'I'),React.createElement('h3',null,'Connections.csv'),React.createElement('p',null,'Required · your data never leaves your device')),
+        React.createElement('input',{type:'file',id:'fi',accept:'.csv',style:{display:'none'},onChange:e=>e.target.files[0]&&readConnections(e.target.files[0])}),
+        hasMessages?React.createElement('div',{className:'uok',style:{marginBottom:12}},React.createElement('span',{className:'wl-tick'},'\u2713'),React.createElement('div',null,React.createElement('h3',null,'Messages.csv loaded'),React.createElement('p',null,`${msgCount} connections matched to your message history`)))
+          :React.createElement('div',{className:`uz ${msgDrag?'drag':''}`,style:{marginBottom:12,opacity:conns?1:.45,cursor:conns?'pointer':'not-allowed'},onDragOver:e=>{e.preventDefault();if(conns)setMsgDrag(true)},onDragLeave:()=>setMsgDrag(false),onDrop:e=>{e.preventDefault();setMsgDrag(false);if(conns&&e.dataTransfer.files[0])readMessages(e.dataTransfer.files[0])},onClick:()=>conns&&document.getElementById('fi-msg').click()},React.createElement('div',{className:'ui'},'II'),React.createElement('h3',null,'Messages.csv'),React.createElement('p',null,conns?'Optional, but it makes the ranking far more accurate':'Upload Connections.csv first')),
+        React.createElement('input',{type:'file',id:'fi-msg',accept:'.csv',style:{display:'none'},onChange:e=>e.target.files[0]&&readMessages(e.target.files[0])}),
+        React.createElement('button',{className:'btn-p',style:{marginTop:8},disabled:!conns,onClick:()=>conns&&setStep(2)},conns?`Continue with ${conns.length.toLocaleString()} connections →`:'Upload Connections.csv to continue')
+      ),
+      step>=2&&React.createElement('div',null,
+        React.createElement('div',{className:'slbl'},'Step 2 of 3'),
+        React.createElement('h2',{className:'stitle'},'What are you trying to do?'),
+        React.createElement('div',{className:'mg'},MODES.map((m,mi)=>React.createElement('div',{key:m.id,tabIndex:0,onKeyDown:e=>{if(e.key==='Enter'){setMode(m.id);setStep(3);setIntent({});}},className:`mc ${mode===m.id?'sel':''}`,onClick:()=>{setMode(m.id);setStep(3);setIntent({});}},React.createElement('div',{className:'mi'},['I','II','III','IV','V','VI'][mi]),React.createElement('div',null,React.createElement('div',{className:'mt'},m.title),React.createElement('div',{className:'md'},m.desc)))))
+      ),
+      step>=3&&mode&&React.createElement('div',null,
+        React.createElement('div',{className:'slbl'},'Step 3 of 3'),
+        React.createElement('h2',{className:'stitle'},'Tell me a bit more'),
+        React.createElement('div',{className:'form'},
+          mode==='job'&&React.createElement(React.Fragment,null,I('Target Role','e.g. Marketing Manager',intent.role,v=>setIntent({...intent,role:v})),S('Target Industry',intent.industry,v=>setIntent({...intent,industry:v}),INDS),I('Target Companies (comma separated)',"e.g. Sephora, Chalhoub, L'Oréal",intent.companies,v=>setIntent({...intent,companies:v})),I('Target City','e.g. Dubai, London',intent.city,v=>setIntent({...intent,city:v}))),
+          mode==='pivot'&&React.createElement(React.Fragment,null,S('Industry Moving INTO',intent.industry,v=>setIntent({...intent,industry:v}),INDS),I('Industry Moving FROM','e.g. Finance, Tech',intent.fromIndustry,v=>setIntent({...intent,fromIndustry:v})),I('Target Role','e.g. Brand Manager',intent.role,v=>setIntent({...intent,role:v}))),
+          mode==='clients'&&React.createElement(React.Fragment,null,I('What do you offer?','e.g. Fractional CMO, Brand Strategy',intent.offering,v=>setIntent({...intent,offering:v})),I('Target Client Industries','e.g. Beauty, Wellness, Luxury',intent.industries,v=>setIntent({...intent,industries:v})),I('Target City / Market','e.g. Dubai, GCC',intent.city,v=>setIntent({...intent,city:v}))),
+          mode==='city'&&React.createElement(React.Fragment,null,I('Which city?','e.g. Dubai',intent.city,v=>setIntent({...intent,city:v})),S('How long have you been there?',intent.duration,v=>setIntent({...intent,duration:v}),['Under 6 months','6–12 months','1–2 years','2+ years'])),
+          mode==='audit'&&React.createElement(React.Fragment,null,S('Your Current Industry',intent.currentIndustry,v=>setIntent({...intent,currentIndustry:v}),INDS),I('Industries to break into','e.g. Health Tech, Media',intent.targetIndustries,v=>setIntent({...intent,targetIndustries:v})))
+        ),
+        React.createElement('button',{className:'btn-p',disabled:!conns||!mode,onClick:()=>conns&&mode&&onStart(conns,mode,intent,hasMessages,{rawConnText,urlMap})},'Analyse My Network →')
+      )
+    )
+  );
+}
+
+/* ─ DASHBOARD ─ */
+function Dashboard({conns,mode,intent,hasMessages,onReset}){
+  const [tab,setTab]=useState('hitlist');
+  const [show,setShow]=useState(20);
+  const [tf,setTf]=useState({q:'',sen:'',fn:'',ind:'',w:'',msg:''});
+  const [sf,setSf]=useState('warmth');
+  const [sd,setSd]=useState(1);
+  const [coQ,setCoQ]=useState('');
+  const [emailQ,setEmailQ]=useState('');
+  const [emailSen,setEmailSen]=useState('');
+  function switchTab(id){setTab(id);}
+
+  const mi=MODES.find(m=>m.id===mode);
+  const h=useMemo(()=>calcHealth(conns,hasMessages),[conns,hasMessages]);
+  const ins=useMemo(()=>genInsights(conns,mode,intent,hasMessages),[conns,mode,intent,hasMessages]);
+  const ranked=useMemo(()=>[...conns].map(c=>({...c,score:scoreC(c,mode,intent)})).sort((a,b)=>b.score-a.score).filter(c=>c.score>5),[conns,mode,intent]);
+
+  const filtered=useMemo(()=>{
+    let l=[...conns];
+    if(tf.q){const q=tf.q.toLowerCase();l=l.filter(c=>c.name.toLowerCase().includes(q)||c.company.toLowerCase().includes(q)||c.position.toLowerCase().includes(q)||c.email.toLowerCase().includes(q));}
+    if(tf.sen)l=l.filter(c=>c.seniority===tf.sen);
+    if(tf.fn)l=l.filter(c=>c.fn===tf.fn);
+    if(tf.ind)l=l.filter(c=>c.industry===tf.ind);
+    if(tf.w)l=l.filter(c=>c.warmth===tf.w);
+    if(tf.msg==='messaged')l=l.filter(c=>!!c.lastMessageDate);
+    if(tf.msg==='recent')l=l.filter(c=>c.lastMessageDate&&(Date.now()-c.lastMessageDate)<1000*60*60*24*30*3);
+    if(tf.msg==='never')l=l.filter(c=>!c.lastMessageDate);
+    const wo={Active:0,Hot:1,Warm:2,Cooling:3,Cold:4};
+    l.sort((a,b)=>{if(sf==='warmth')return sd*(wo[a.warmth]-wo[b.warmth]);return sd*((a[sf]||'').localeCompare(b[sf]||''));});
+    return l;
+  },[conns,tf,sf,sd]);
+
+  const recs=useMemo(()=>conns.filter(c=>c.seniority==='Recruiter').sort((a,b)=>({Active:0,Hot:1,Warm:2,Cooling:3,Cold:4}[a.warmth]-{Active:0,Hot:1,Warm:2,Cooling:3,Cold:4}[b.warmth])),[conns]);
+  const wLeads=useMemo(()=>ranked.filter(c=>['Hot','Warm','Active'].includes(c.warmth)),[ranked]);
+  const insiders=useMemo(()=>ranked.filter(c=>(intent.industry||'')&&c.industry.toLowerCase().includes((intent.industry||'').toLowerCase())),[ranked,intent]);
+  const emailConns=useMemo(()=>conns.filter(c=>c.hasEmail).sort((a,b)=>({Active:0,Hot:1,Warm:2,Cooling:3,Cold:4}[a.warmth]-{Active:0,Hot:1,Warm:2,Cooling:3,Cold:4}[b.warmth])),[conns]);
+  const filteredEmails=useMemo(()=>emailConns.filter(c=>{const q=emailQ.toLowerCase();return(!q||(c.name.toLowerCase().includes(q)||c.company.toLowerCase().includes(q)||c.email.toLowerCase().includes(q)))&&(!emailSen||c.seniority===emailSen);}),[emailConns,emailQ,emailSen]);
+  const coCounts=useMemo(()=>{const m={};conns.forEach(c=>{if(!c.company)return;if(!m[c.company])m[c.company]={name:c.company,count:0,hot:0,warm:0};m[c.company].count++;if(['Hot','Active'].includes(c.warmth))m[c.company].hot++;if(c.warmth==='Warm')m[c.company].warm++;});return Object.values(m).sort((a,b)=>b.count-a.count);},[conns]);
+  const stats=useMemo(()=>({total:conns.length,hw:conns.filter(c=>['Hot','Warm','Active'].includes(c.warmth)).length,em:conns.filter(c=>c.hasEmail).length,sr:conns.filter(c=>['Founder','C-Suite','VP','Director'].includes(c.seniority)).length,messaged:conns.filter(c=>!!c.lastMessageDate).length}),[conns]);
+
+  function exportCSV(data,fname){
+    const hdr=['Name','Email','Company','Position','Seniority','Function','Industry','Connection Recency','Last Messaged','Connected On','LinkedIn'];
+    const rows=data.map(c=>[c.name,c.email,c.company,c.position,c.seniority,c.fn,c.industry,c.connectionWarmth,c.lastMessageDate?new Date(c.lastMessageDate).toLocaleDateString():'Never',c.connectedOn,c.url]);
+    const csv=[hdr,...rows].map(r=>r.map(v=>`"${(v||'').toString().replace(/"/g,'""')}"`).join(',')).join('\n');
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=fname;a.click();
+  }
+
+  const SENIORITIES=['Founder','C-Suite','VP','Director','Senior','Manager','Recruiter','IC / Peer'];
+  const FUNCTIONS=['Marketing','Sales','Finance','Tech & Engineering','People & HR','Creative & Design','Operations','Consulting','Recruitment & Talent','Founder','Investor / VC','Other'];
+  const baseTabs=[{id:'hitlist',label:"Hit List"},{id:'email',label:'Emails'},{id:'network',label:'Network'},{id:'companies',label:'Companies'},{id:'charts',label:'Charts'}];
+  const extraTabs=mode==='job'?[{id:'recs',label:"Recruiters"}]:mode==='clients'?[{id:'warm',label:'Warm Leads'}]:mode==='pivot'?[{id:'ins',label:'Insiders'}]:[];
+  const tabs=[...baseTabs,...extraTabs];
+
+  function renderContent(){
+    if(tab==='hitlist')return React.createElement('div',{className:'fade'},
+      !hasMessages&&React.createElement('div',{className:'warmth-note'},'Hit list ranked by connection recency. Upload Messages.csv for real engagement scoring. The list will change significantly.'),
+      React.createElement('div',{className:'sh'},React.createElement('div',{className:'st'},'Your Hit List'),React.createElement('div',{style:{display:'flex',gap:8,alignItems:'center'}},React.createElement('span',{className:'sc2'},`${ranked.length} ranked`),React.createElement('button',{className:'bex',onClick:()=>exportCSV(ranked,'hit-list.csv')},'↓ Export'))),
+      React.createElement('div',{className:'hl-list'},ranked.slice(0,show).map((c,i)=>React.createElement(HitCard,{key:c.id,c,rank:i+1,mode,intent}))),
+      show<ranked.length&&React.createElement('div',{className:'lm'},React.createElement('button',{className:'blm',onClick:()=>setShow(s=>s+20)},`Load more (${ranked.length-show} remaining)`))
+    );
+
+    if(tab==='email')return React.createElement('div',{className:'fade'},
+      React.createElement('div',{className:'sh'},React.createElement('div',null,React.createElement('div',{className:'st'},'Email Reachable'),React.createElement('div',{style:{fontSize:12,color:'var(--t2)',marginTop:4}},'Connections who shared their email · click address to open mail')),React.createElement('button',{className:'bex',onClick:()=>exportCSV(filteredEmails,'emails.csv')},'↓ Export')),
+      React.createElement('div',{className:'fb'},React.createElement('input',{className:'fs',placeholder:'Search name, company, email...',value:emailQ,onChange:e=>setEmailQ(e.target.value)}),React.createElement('select',{className:'fsel',value:emailSen,onChange:e=>setEmailSen(e.target.value)},React.createElement('option',{value:''},'All Levels'),SENIORITIES.map(o=>React.createElement('option',{key:o,value:o},o)))),
+      emailConns.length===0
+        ?React.createElement('div',{style:{textAlign:'center',padding:60,color:'var(--t2)'}},'No connections have shared their email. LinkedIn only includes emails when connections explicitly allow it.')
+        :React.createElement('div',{className:'tw'},React.createElement('div',{className:'th2'},React.createElement('h3',null,`${filteredEmails.length} connections with email`)),React.createElement('div',{className:'ts'},React.createElement('table',null,React.createElement('thead',null,React.createElement('tr',null,React.createElement('th',null,'Name'),React.createElement('th',null,'Email'),React.createElement('th',null,'Company'),React.createElement('th',null,'Role'),React.createElement('th',null,'Level'),React.createElement('th',null,'Last Contact'),React.createElement('th',null,''))),React.createElement('tbody',null,filteredEmails.map(c=>React.createElement('tr',{key:c.id},React.createElement('td',null,React.createElement('div',{className:'tn'},c.name)),React.createElement('td',null,React.createElement('a',{href:`mailto:${c.email}`,style:{color:'var(--p)',fontSize:12}},c.email)),React.createElement('td',null,React.createElement('div',{className:'tsb'},c.company)),React.createElement('td',null,React.createElement('div',{className:'tsb'},c.position)),React.createElement('td',null,React.createElement('span',{className:'b bs'},c.seniority)),React.createElement('td',null,c.lastMessageDate?React.createElement('span',{className:'b',style:{background:'var(--p)',color:'#fff',fontSize:10}},'',msgAgo(c.lastMessageDate)):React.createElement(WBadge,{w:c.connectionWarmth})),React.createElement('td',null,c.url?React.createElement('a',{href:c.url,target:'_blank',rel:'noopener',style:{color:'var(--p)',textDecoration:'none'}},'↗'):''))))))
+        )
+    );
+
+    if(tab==='network')return React.createElement('div',{className:'fade'},
+      React.createElement('div',{className:'sh'},React.createElement('div',{className:'st'},'Full Network'),React.createElement('button',{className:'bex',onClick:()=>exportCSV(filtered,'network.csv')},'↓ Export')),
+      React.createElement('div',{className:'fb'},
+        React.createElement('input',{className:'fs',placeholder:'Search name, company, role, email...',value:tf.q,onChange:e=>setTf({...tf,q:e.target.value})}),
+        React.createElement('select',{className:'fsel',value:tf.sen,onChange:e=>setTf({...tf,sen:e.target.value})},React.createElement('option',{value:''},'All Levels'),SENIORITIES.map(o=>React.createElement('option',{key:o,value:o},o))),
+        React.createElement('select',{className:'fsel',value:tf.fn,onChange:e=>setTf({...tf,fn:e.target.value})},React.createElement('option',{value:''},'All Functions'),FUNCTIONS.map(o=>React.createElement('option',{key:o,value:o},o))),
+        React.createElement('select',{className:'fsel',value:tf.ind,onChange:e=>setTf({...tf,ind:e.target.value})},React.createElement('option',{value:''},'All Industries'),INDS.map(o=>React.createElement('option',{key:o,value:o},o))),
+        React.createElement('select',{className:'fsel',value:tf.w,onChange:e=>setTf({...tf,w:e.target.value})},React.createElement('option',{value:''},'All Recency'),['Active','Hot','Warm','Cooling','Cold'].map(o=>React.createElement('option',{key:o,value:o},o))),
+        React.createElement('select',{className:'fsel',value:tf.msg,onChange:e=>setTf({...tf,msg:e.target.value})},React.createElement('option',{value:''},'All Message Activity'),React.createElement('option',{value:'messaged'},'Ever Messaged'),React.createElement('option',{value:'recent'},'Messaged < 3 months'),React.createElement('option',{value:'never'},'Never Messaged'))
+      ),
+      React.createElement('div',{className:'tw'},
+        React.createElement('div',{className:'th2'},React.createElement('h3',null,`${filtered.length.toLocaleString()} connections`)),
+        React.createElement('div',{className:'ts'},React.createElement('table',null,
+          React.createElement('thead',null,React.createElement('tr',null,
+            [['name','Name'],['company','Company'],['position','Role'],['seniority','Level'],['connectionWarmth','Connected'],['warmth','Last Contact'],['industry','Industry']].map(([f,l])=>React.createElement('th',{key:f,onClick:()=>{if(sf===f)setSd(d=>-d);else{setSf(f);setSd(1);}}},l,' ',sf===f?(sd===1?'↑':'↓'):'')),
+            React.createElement('th',null,'Email'),React.createElement('th',null,'')
+          )),
+          React.createElement('tbody',null,filtered.slice(0,200).map(c=>React.createElement('tr',{key:c.id},
+            React.createElement('td',null,React.createElement('div',{className:'tn'},c.name)),
+            React.createElement('td',null,React.createElement('div',{className:'tsb'},c.company)),
+            React.createElement('td',null,React.createElement('div',{className:'tsb'},c.position)),
+            React.createElement('td',null,React.createElement('span',{className:'b bs'},c.seniority)),
+            React.createElement('td',null,React.createElement(WBadge,{w:c.connectionWarmth})),
+            React.createElement('td',null,c.lastMessageDate?React.createElement('span',{className:'b',style:{background:'var(--p)',color:'#fff',fontSize:10}},'',msgAgo(c.lastMessageDate)):React.createElement('span',{className:'b bf',style:{fontSize:10}},'— never')),
+            React.createElement('td',null,React.createElement('span',{className:'b bi',style:{fontSize:9}},c.industry)),
+            React.createElement('td',null,c.hasEmail?React.createElement('span',{className:'b be',title:c.email},'Email'):'—'),
+            React.createElement('td',null,c.url?React.createElement('a',{href:c.url,target:'_blank',rel:'noopener',style:{color:'var(--p)',textDecoration:'none'}},'↗'):'')
+          )))
+        )),
+        filtered.length>200&&React.createElement('div',{style:{padding:10,textAlign:'center',fontSize:11,color:'var(--t2)'}},`Showing 200 of ${filtered.length}. Use filters to narrow it down.`)
+      )
+    );
+
+    if(tab==='companies')return React.createElement('div',{className:'fade'},
+      React.createElement('div',{className:'sh'},React.createElement('div',{className:'st'},'Companies in Your Network'),React.createElement('span',{className:'sc2'},`${coCounts.length} companies`)),
+      React.createElement('input',{className:'fs',placeholder:'Search e.g. "Sephora", "Chalhoub"',value:coQ,onChange:e=>setCoQ(e.target.value),style:{marginBottom:16,width:'100%'}}),
+      React.createElement('div',{className:'cog'},coCounts.filter(c=>!coQ||c.name.toLowerCase().includes(coQ.toLowerCase())).slice(0,80).map(c=>React.createElement('div',{key:c.name,className:'cocard'},React.createElement('div',{className:'con',title:c.name},c.name),React.createElement('div',{className:'coc'},c.count),React.createElement('div',{className:'com'},`${c.hot} hot · ${c.warm} warm`))))
+    );
+
+    if(tab==='charts')return React.createElement('div',{className:'fade'},
+      React.createElement('div',{className:'st',style:{marginBottom:18}},'Network Breakdown'),
+      React.createElement('div',{className:'cg'},
+        React.createElement('div',{className:'cc'},React.createElement('div',{className:'ct'},'By Seniority'),React.createElement(BarViz,{data:countBy(conns,'seniority'),color:'var(--p)'})),
+        React.createElement('div',{className:'cc'},React.createElement('div',{className:'ct'},'By Connection Recency'),React.createElement(BarViz,{data:countBy(conns,'connectionWarmth'),color:'var(--g)'})),
+        React.createElement('div',{className:'cc'},React.createElement('div',{className:'ct'},'By Industry'),React.createElement(BarViz,{data:countBy(conns,'industry'),color:'var(--acc)'})),
+        React.createElement('div',{className:'cc'},React.createElement('div',{className:'ct'},'By Function'),React.createElement(BarViz,{data:countBy(conns,'fn'),color:'var(--o)'}))
+      )
+    );
+
+    if(tab==='recs')return React.createElement('div',{className:'fade'},React.createElement('div',{className:'sh'},React.createElement('div',{className:'st'},`${recs.length} Recruiters`),React.createElement('button',{className:'bex',onClick:()=>exportCSV(recs,'recruiters.csv')},'↓ Export')),React.createElement('div',{className:'hl-list'},recs.slice(0,30).map((c,i)=>React.createElement(HitCard,{key:c.id,c,rank:i+1,mode,intent}))));
+    if(tab==='warm')return React.createElement('div',{className:'fade'},React.createElement('div',{className:'sh'},React.createElement('div',{className:'st'},`${wLeads.length} Warm Leads`),React.createElement('button',{className:'bex',onClick:()=>exportCSV(wLeads,'warm-leads.csv')},'↓ Export')),React.createElement('div',{className:'hl-list'},wLeads.slice(0,30).map((c,i)=>React.createElement(HitCard,{key:c.id,c,rank:i+1,mode,intent}))));
+    if(tab==='ins')return React.createElement('div',{className:'fade'},React.createElement('div',{className:'sh'},React.createElement('div',{className:'st'},`Industry Insiders${intent.industry?': '+intent.industry:''}`)),React.createElement('div',{className:'hl-list'},insiders.slice(0,30).map((c,i)=>React.createElement(HitCard,{key:c.id,c,rank:i+1,mode,intent}))));
+  }
+
+  return React.createElement('div',{className:'dash'},
+    React.createElement('div',{className:'sb'},
+      React.createElement('div',{className:'sb-logo'},'W'),
+      tabs.map(t=>React.createElement('div',{key:t.id,className:`si ${tab===t.id?'act':''}`,onClick:()=>switchTab(t.id),title:t.label},React.createElement(TabIcon,{id:t.id}))),
+      React.createElement('div',{className:'sb-bot'},React.createElement('div',{className:'mbadge',onClick:onReset,title:"Change mode"},'Reset'))
+    ),
+    React.createElement('div',{className:'main'},
+      React.createElement('div',{className:'topbar'},
+        React.createElement('div',null,React.createElement('h1',null,'Warmlist'),React.createElement('p',null,`${stats.total.toLocaleString()} connections analysed`)),
+        React.createElement('div',{className:'tbr'},
+          React.createElement('div',{className:'mpill'},mi?.title),
+          hasMessages&&React.createElement('div',{className:'msg-pill'},`${stats.messaged.toLocaleString()} contacts matched`),
+          React.createElement('button',{className:'btn-sm',onClick:onReset},'Change Mode')
+        )
+      ),
+      React.createElement('div',{className:'stats'},
+        React.createElement('div',{className:'sc hl'},React.createElement('div',{className:'sc-l'},'Total'),React.createElement('div',{className:'sc-v'},stats.total.toLocaleString()),React.createElement('div',{className:'sc-s'},'connections')),
+        React.createElement('div',{className:'sc'},React.createElement('div',{className:'sc-l'},'Active'),React.createElement('div',{className:'sc-v'},stats.hw.toLocaleString()),React.createElement('div',{className:'sc-s'},`${Math.round(stats.hw/stats.total*100)}% of network`)),
+        React.createElement('div',{className:'sc'},React.createElement('div',{className:'sc-l'},hasMessages?'Ever Messaged':'With Email'),React.createElement('div',{className:'sc-v'},(hasMessages?stats.messaged:stats.em).toLocaleString()),React.createElement('div',{className:'sc-s'},hasMessages?'real engagement':'direct reachable')),
+        React.createElement('div',{className:'sc'},React.createElement('div',{className:'sc-l'},'Decision Makers'),React.createElement('div',{className:'sc-v'},stats.sr.toLocaleString()),React.createElement('div',{className:'sc-s'},`${Math.round(stats.sr/stats.total*100)}% of network`)),
+        React.createElement('div',{className:'sc'},React.createElement('div',{className:'sc-l'},'Health Score'),React.createElement('div',{className:'sc-v',style:{color:h.score>=65?'var(--g)':h.score>=50?'var(--o)':'var(--r)'}},h.score),React.createElement('div',{className:'sc-s'},h.grade))
+      ),
+      React.createElement('div',{className:'tabs'},tabs.map(t=>React.createElement('button',{key:t.id,className:`tab ${tab===t.id?'act':''}`,onClick:()=>switchTab(t.id)},t.label))),
+      React.createElement('div',{className:'two-col'},
+        React.createElement('div',null,renderContent()),
+        React.createElement('div',null,
+          React.createElement('div',{className:'health'},
+            React.createElement('div',{className:'hl-l'},'Network Health Score'),
+            React.createElement('div',{className:'hl-s'},h.score),
+            React.createElement('div',{className:'hl-sub'},'out of 100'),
+            React.createElement('div',{className:'hl-grade'},h.grade),
+            React.createElement('div',{className:'hbars'},h.comps.map(c=>React.createElement('div',{key:c.l,className:'hbr'},React.createElement('div',{className:'hbl'},React.createElement('span',null,c.l),React.createElement('span',null,`${c.v}/${c.m}`)),React.createElement('div',{className:'hbt'},React.createElement('div',{className:'hbf',style:{width:`${(c.v/c.m)*100}%`}})))))
+          ),React.createElement('div',{className:'health-note'},h.tip),
+          React.createElement('div',{className:'inp'},ins.map((x,i)=>React.createElement('div',{key:i,className:`ic ${x.t}`},React.createElement('div',{className:'ic-h'},x.h),React.createElement('div',{className:'ic-b'},x.b),x.a&&React.createElement('button',{className:'ic-a',onClick:()=>setTab(x.a.includes('insider')?'ins':x.a.includes('warm')?'warm':'hitlist')},'→ ',x.a))))
+        )
+      )
+    )
+  );
+}
+
+function App(){
+  const [s,setS]=useState('ob');const [conns,setConns]=useState([]);const [mode,setMode]=useState(null);const [intent,setIntent]=useState({});const [hasMessages,setHasMessages]=useState(false);const [src,setSrc]=useState(null);
+  if(s==='ob')return React.createElement(Onboarding,{initial:conns.length?{conns,hasMessages,rawConnText:src&&src.rawConnText,urlMap:(src&&src.urlMap)||{}}:null,onStart:(c,m,i,hm,raw)=>{setConns(c);setMode(m);setIntent(i);setHasMessages(hm);setSrc(raw||null);setS('dash');}});
+  return React.createElement(Dashboard,{conns,mode,intent,hasMessages,onReset:()=>setS('ob')});
+}
+ReactDOM.render(React.createElement(App), document.getElementById('root'));
+/* ]]> */
+</script>
+</body>
+</html>
